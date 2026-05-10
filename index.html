@@ -11,7 +11,7 @@
         h1 { text-align: center; color: var(--primary); margin: 10px 0 5px 0; }
         .subtitulo { text-align: center; color: #666; margin-bottom: 20px; font-size: 0.9em; }
         .produto-card { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; background: #fff; margin-bottom: 5px; border-radius: 8px; }
-        .produto-img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; background: #f0f0f0; }
+        .produto-img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; background: #eee; }
         .produto-info { flex-grow: 1; margin-left: 15px; }
         .produto-nome { font-weight: bold; font-size: 1.1em; color: #333; }
         .produto-preco { color: var(--secondary); font-weight: bold; display: block; margin-top: 5px; }
@@ -48,47 +48,36 @@
 </div>
 
 <script>
-    // Link do seu Google Apps Script (App Web)
+    // Link do seu Google Script (App da Web /exec)
     const LINK_SISTEMA = "https://script.google.com/macros/s/AKfycbzITE5_PQ0mumkTKfJFGEAnsjFQQUTxcFJwCxc89nTQzWkGjfQZW_Vvr7Ga-3Tskiyn/exec";
-    
-    // Seu número com código da Romênia (40)
-    const MEU_ZAP = "407752557771";
 
     let carrinho = [];
     let total = 0;
 
     async function carregarCardapio() {
         try {
-            const res = await fetch(LINK_SISTEMA, {
-                method: "GET",
-                mode: "cors",
-                redirect: "follow"
-            });
+            const res = await fetch(LINK_SISTEMA);
             const produtos = await res.json();
             const lista = document.getElementById('cardapio');
             document.getElementById('loading').style.display = 'none';
             
-            lista.innerHTML = ''; 
-
             produtos.forEach(p => {
                 lista.innerHTML += `
                     <div class="produto-card">
-                        <img src="${p.imagem}" class="produto-img" alt="Foto" onerror="this.src='https://via.placeholder.com/80?text=Petisco'">
+                        <img src="${p.imagem}" class="produto-img" onerror="this.src='https://via.placeholder.com/80?text=Comida'">
                         <div class="produto-info">
                             <span class="produto-nome">${p.nome}</span>
                             <span class="produto-preco">R$ ${p.preco}</span>
                         </div>
-                        <button class="btn-add" onclick="addCarrinho('${p.nome}', '${p.preco}')">+</button>
+                        <button class="btn-add" onclick="addCarrinho('${p.nome}', ${parseFloat(p.preco.toString().replace(',','.'))})">+</button>
                     </div>`;
             });
         } catch (err) {
             document.getElementById('loading').innerText = "Erro ao carregar cardápio.";
-            console.error(err);
         }
     }
 
-    function addCarrinho(nome, precoStr) {
-        const preco = parseFloat(precoStr.toString().replace(',','.'));
+    function addCarrinho(nome, preco) {
         carrinho.push({nome, preco});
         total += preco;
         renderCarrinho();
@@ -112,34 +101,31 @@
         const pag = document.getElementById('cliente-pag').value;
 
         if(!nome || !end || carrinho.length === 0) {
-            alert("Preencha seu nome, endereço e adicione itens ao carrinho!");
+            alert("Preencha os campos e adicione itens!");
             return;
         }
 
         const pedidoTexto = carrinho.map(i => i.nome).join(', ');
         
-        // 1. Salva os dados na planilha primeiro
-        try {
-            fetch(LINK_SISTEMA, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({
-                    nome: nome,
-                    itens: pedidoTexto,
-                    total: total.toFixed(2).replace('.',','),
-                    endereco: end,
-                    pagamento: pag,
-                    telefone: "Site"
-                })
-            });
-        } catch (e) {
-            console.log("Erro ao salvar na planilha, mas seguindo para o WhatsApp...");
-        }
+        // Envia os dados para a sua planilha (POST)
+        fetch(LINK_SISTEMA, { 
+            method: 'POST', 
+            mode: 'no-cors',
+            body: JSON.stringify({
+                nome: nome, 
+                itens: pedidoTexto, 
+                total: total.toFixed(2), 
+                endereco: end, 
+                pagamento: pag, 
+                telefone: "Site"
+            })
+        });
 
-        // 2. Prepara e envia a mensagem para o seu WhatsApp
+        // Monta a mensagem para o WhatsApp
         const msg = `*Novo Pedido - Petiscos da Cici*%0A%0A*Cliente:* ${nome}%0A*Itens:* ${pedidoTexto}%0A*Total:* R$ ${total.toFixed(2).replace('.',',')}%0A*Endereço:* ${end}%0A*Pagamento:* ${pag}`;
         
-        window.open(`https://wa.me/${MEU_ZAP}?text=${msg}`);
+        // ENVIO PARA O SEU NÚMERO DA ROMÊNIA
+        window.open(`https://wa.me/40775255771?text=${msg}`);
     }
 
     carregarCardapio();
