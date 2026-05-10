@@ -48,7 +48,7 @@
 </div>
 
 <script>
-    // Link do seu Google Script (App da Web /exec)
+    // Link do seu Google Script (Confirme se é o mesmo que você está usando)
     const LINK_SISTEMA = "https://script.google.com/macros/s/AKfycbzITE5_PQ0mumkTKfJFGEAnsjFQQUTxcFJwCxc89nTQzWkGjfQZW_Vvr7Ga-3Tskiyn/exec";
 
     let carrinho = [];
@@ -107,25 +107,28 @@
 
         const pedidoTexto = carrinho.map(i => i.nome).join(', ');
         
-        // Envia os dados para a sua planilha (POST)
-        fetch(LINK_SISTEMA, { 
-            method: 'POST', 
-            mode: 'no-cors',
-            body: JSON.stringify({
-                nome: nome, 
-                itens: pedidoTexto, 
-                total: total.toFixed(2), 
-                endereco: end, 
-                pagamento: pag, 
-                telefone: "Site"
-            })
-        });
+        // ENVIO DOS DADOS PARA O ROBÔ (PLANILHA)
+        const dados = {
+            nome: nome,
+            itens: pedidoTexto,
+            total: total.toFixed(2),
+            endereco: end,
+            pagamento: pag
+        };
 
-        // Monta a mensagem para o WhatsApp
+        try {
+            fetch(LINK_SISTEMA, { 
+                method: 'POST', 
+                mode: 'no-cors',
+                body: JSON.stringify(dados)
+            });
+        } catch (e) { console.log("Erro no envio para planilha"); }
+
+        // MENSAGEM WHATSAPP
         const msg = `*Novo Pedido - Petiscos da Cici*%0A%0A*Cliente:* ${nome}%0A*Itens:* ${pedidoTexto}%0A*Total:* R$ ${total.toFixed(2).replace('.',',')}%0A*Endereço:* ${end}%0A*Pagamento:* ${pag}`;
         
-        // ENVIO PARA O SEU NÚMERO DA ROMÊNIA
-        window.open(`https://wa.me/40775255771?text=${msg}`);
+        // Link usando a API oficial que funciona melhor com números internacionais
+        window.open(`https://api.whatsapp.com/send?phone=40775255771&text=${msg}`);
     }
 
     carregarCardapio();
