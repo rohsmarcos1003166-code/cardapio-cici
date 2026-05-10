@@ -6,81 +6,88 @@
     <title>Petiscos da Cici - Cardápio</title>
     <style>
         :root { --primary: #d32f2f; --secondary: #2e7d32; --bg: #f4f4f4; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 100px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 180px; }
         h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
         
         /* Layout em Grade (Estilo iFood) */
         .grid-produtos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-        .card { background: white; border-radius: 12px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
-        .card img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; }
-        .nome { font-weight: bold; font-size: 0.9em; margin: 8px 0; display: block; height: 35px; }
+        .card { background: white; border-radius: 12px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
+        .card img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; background: #eee; }
+        .nome { font-weight: bold; font-size: 0.9em; margin: 8px 0; display: block; height: 35px; overflow: hidden; }
         .preco { color: var(--secondary); font-weight: bold; margin-bottom: 10px; display: block; }
         
         /* Controles de Quantidade */
-        .controles { display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-qtd { background: var(--primary); color: white; border: none; width: 28px; height: 28px; border-radius: 50%; font-weight: bold; cursor: pointer; }
-        .qtd-num { font-weight: bold; width: 20px; }
+        .controles { display: flex; align-items: center; justify-content: center; gap: 10px; background: #f9f9f9; border-radius: 20px; padding: 5px; }
+        .btn-qtd { background: var(--primary); color: white; border: none; width: 28px; height: 28px; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 18px; }
+        .qtd-num { font-weight: bold; width: 20px; text-align: center; }
 
         /* Pagamento por Ícones */
-        .pagamento-opcoes { display: flex; justify-content: space-around; margin: 15px 0; }
-        .op-pag { border: 2px solid #ddd; padding: 10px; border-radius: 10px; cursor: pointer; flex: 1; margin: 0 5px; text-align: center; transition: 0.3s; }
-        .op-pag.selected { border-color: var(--secondary); background: #e8f5e9; }
-        .op-pag i { font-size: 20px; display: block; }
+        .pagamento-opcoes { display: flex; justify-content: space-around; margin: 10px 0; }
+        .op-pag { border: 2px solid #ddd; padding: 8px; border-radius: 10px; cursor: pointer; flex: 1; margin: 0 5px; text-align: center; transition: 0.3s; font-size: 12px; font-weight: bold; }
+        .op-pag.selected { border-color: var(--secondary); background: #e8f5e9; color: var(--secondary); }
 
         /* Rodapé de Finalização */
-        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; }
-        .btn-enviar { width: 100%; background: #25d366; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 1.1em; }
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); z-index: 100; border-radius: 20px 20px 0 0; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; font-size: 14px; }
+        .btn-enviar { width: 100%; background: #25d366; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 1.1em; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <h1>Petiscos da Cici 🍕</h1>
-    <div id="saudacao" style="text-align: center; font-weight: bold; color: #555;"></div>
+    <div id="saudacao" style="text-align: center; font-weight: bold; color: #555; margin-bottom: 10px;"></div>
 
-    <div class="grid-produtos" id="cardapio">
-        </div>
+    <div id="loading" style="text-align:center; padding:50px; color: #999;">Carregando delícias...</div>
+    <div class="grid-produtos" id="cardapio"></div>
 
     <div class="footer">
+        <div style="font-weight: bold; margin-bottom: 8px; color: #333; font-size: 14px;">Forma de Pagamento:</div>
         <div class="pagamento-opcoes">
-            <div class="op-pag" onclick="setPagamento('PIX', this)">💠<br>PIX</div>
-            <div class="op-pag" onclick="setPagamento('Cartão', this)">💳<br>Cartão</div>
-            <div class="op-pag" onclick="setPagamento('Dinheiro', this)">💵<br>Dinheiro</div>
+            <div class="op-pag" onclick="setPagamento('PIX', this)">💠 PIX</div>
+            <div class="op-pag" onclick="setPagamento('Cartão', this)">💳 Cartão</div>
+            <div class="op-pag" onclick="setPagamento('Dinheiro', this)">💵 Dinheiro</div>
         </div>
-        <input type="text" id="endereco" placeholder="Digite seu Endereço Completo">
-        <button class="btn-enviar" onclick="finalizarPedido()">Finalizar Pedido</button>
+        <input type="text" id="endereco" placeholder="Digite seu Endereço (Rua, Nº, Bairro)">
+        <button class="btn-enviar" onclick="finalizarPedido()">✅ Confirmar e Finalizar</button>
     </div>
 
 <script>
-    const LINK_SISTEMA = "SEU_LINK_DO_GOOGLE_SCRIPT_AQUI"; // Mantenha o seu link atual
+    // LINK CORRIGIDO AQUI
+    const LINK_SISTEMA = "https://script.google.com/macros/s/AKfycbzITE5_PQ0mumkTKfJFGEAnsjFQQUTxcFJwCxc89nTQzWkGjfQZW_Vvr7Ga-3Tskiyn/exec";
+    
     let produtosData = [];
     let carrinho = {};
     let formaPagamento = "";
 
-    // Pega Nome e Telefone da URL (Link encurtado ou do robô)
+    // Pega Nome e Telefone da URL
     const urlParams = new URLSearchParams(window.location.search);
     const nomeUser = urlParams.get('nome') || "Cliente";
-    const telUser = urlParams.get('tel') || "Não informado";
+    const telUser = urlParams.get('tel') || "Não identificado";
     document.getElementById('saudacao').innerText = `Olá, ${nomeUser}! 👋`;
 
     async function carregar() {
-        const res = await fetch(LINK_SISTEMA);
-        produtosData = await res.json();
-        const lista = document.getElementById('cardapio');
-        
-        produtosData.forEach((p, index) => {
-            lista.innerHTML += `
-                <div class="card">
-                    <img src="${p.imagem}" onerror="this.src='https://via.placeholder.com/150'">
-                    <span class="nome">${p.nome}</span>
-                    <span class="preco">R$ ${p.preco}</span>
-                    <div class="controles">
-                        <button class="btn-qtd" onclick="mudarQtd('${p.nome}', -1, ${index})">-</button>
-                        <span class="qtd-num" id="qtd-${index}">0</span>
-                        <button class="btn-qtd" onclick="mudarQtd('${p.nome}', 1, ${index})">+</button>
-                    </div>
-                </div>`;
-        });
+        try {
+            const res = await fetch(LINK_SISTEMA);
+            produtosData = await res.json();
+            const lista = document.getElementById('cardapio');
+            document.getElementById('loading').style.display = 'none';
+            
+            produtosData.forEach((p, index) => {
+                lista.innerHTML += `
+                    <div class="card">
+                        <img src="${p.imagem}" onerror="this.src='https://via.placeholder.com/150?text=Petiscos'">
+                        <span class="nome">${p.nome}</span>
+                        <span class="preco">R$ ${p.preco}</span>
+                        <div class="controles">
+                            <button class="btn-qtd" onclick="mudarQtd('${p.nome}', -1, ${index})">−</button>
+                            <span class="qtd-num" id="qtd-${index}">0</span>
+                            <button class="btn-qtd" onclick="mudarQtd('${p.nome}', 1, ${index})">+</button>
+                        </div>
+                    </div>`;
+            });
+        } catch (e) {
+            document.getElementById('loading').innerText = "Erro ao carregar cardápio.";
+        }
     }
 
     function mudarQtd(nome, delta, index) {
@@ -97,15 +104,16 @@
 
     async function finalizarPedido() {
         const endereco = document.getElementById('endereco').value;
-        if (!endereco || !formaPagamento) return alert("Por favor, preencha o endereço e escolha o pagamento!");
+        if (!endereco) return alert("Por favor, digite seu endereço!");
+        if (!formaPagamento) return alert("Escolha uma forma de pagamento!");
 
         const itensFiltrados = Object.entries(carrinho).filter(([_, q]) => q > 0);
-        if (itensFiltrados.length === 0) return alert("Seu carrinho está vazio!");
+        if (itensFiltrados.length === 0) return alert("Seu carrinho está vazio! Adicione algum petisco.");
 
         const pedidoTexto = itensFiltrados.map(([n, q]) => `${q}x ${n}`).join(', ');
 
         // Envia TUDO para a planilha (Robô)
-        await fetch(LINK_SISTEMA, {
+        fetch(LINK_SISTEMA, {
             method: 'POST',
             mode: 'no-cors',
             body: JSON.stringify({
@@ -117,7 +125,7 @@
             })
         });
 
-        // Abre o WhatsApp apenas com a saudação simples
+        // WhatsApp apenas com a saudação
         const msg = `Olá! Acabei de enviar meu pedido pelo site e estou aguardando a sua confirmação. 👋`;
         window.open(`https://api.whatsapp.com/send?phone=40775255771&text=${msg}`);
     }
