@@ -2,61 +2,62 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Petiscos da Cici - Cardápio</title>
     <style>
         :root { --primary: #d32f2f; --secondary: #2e7d32; --bg: #f4f4f4; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 220px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 300px; /* Espaço extra para as bebidas aparecerem */ }
         h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
         
-        /* Layout em Grade Estilo iFood */
+        /* Layout Grade iFood */
         .grid-produtos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-        .card { background: white; border-radius: 12px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 220px; }
-        .card img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; background: #eee; }
-        .nome { font-weight: bold; font-size: 0.9em; margin: 8px 0; display: block; height: 35px; overflow: hidden; }
-        .preco { color: var(--secondary); font-weight: bold; margin-bottom: 10px; display: block; }
+        .card { background: white; border-radius: 12px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 200px; }
+        .card img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; background: #eee; }
+        .nome { font-weight: bold; font-size: 0.85em; margin: 8px 0; display: block; height: 32px; overflow: hidden; }
+        .preco { color: var(--secondary); font-weight: bold; margin-bottom: 8px; display: block; }
         
-        /* Controles de Quantidade (Visível em TODOS os itens) */
-        .controles { display: flex; align-items: center; justify-content: center; gap: 10px; background: #f9f9f9; border-radius: 20px; padding: 5px; margin-top: auto; }
-        .btn-qtd { background: var(--primary); color: white; border: none; width: 28px; height: 28px; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 18px; line-height: 1; }
-        .qtd-num { font-weight: bold; width: 20px; text-align: center; }
+        /* Controles de Quantidade */
+        .controles { display: flex; align-items: center; justify-content: center; gap: 8px; background: #f9f9f9; border-radius: 20px; padding: 5px; }
+        .btn-qtd { background: var(--primary); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 20px; }
+        .qtd-num { font-weight: bold; width: 20px; }
 
-        /* Rodapé Fixo e Total */
-        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); z-index: 100; border-radius: 20px 20px 0 0; }
-        .total-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 10px; background: #fff5f5; border-radius: 8px; border: 1px solid #ffcdd2; }
-        .total-valor { font-size: 20px; font-weight: bold; color: var(--primary); }
+        /* Rodapé Estilo WhatsApp */
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); z-index: 1000; border-radius: 20px 20px 0 0; }
+        .total-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 8px 12px; background: #fff5f5; border-radius: 8px; border: 1px solid #ffcdd2; }
+        .total-valor { font-size: 18px; font-weight: bold; color: var(--primary); }
 
-        /* Opções de Pagamento */
-        .pagamento-opcoes { display: flex; justify-content: space-around; margin: 10px 0; }
-        .op-pag { border: 2px solid #ddd; padding: 8px; border-radius: 10px; cursor: pointer; flex: 1; margin: 0 5px; text-align: center; transition: 0.3s; font-size: 12px; font-weight: bold; }
+        .pagamento-opcoes { display: flex; justify-content: space-around; margin-bottom: 10px; }
+        .op-pag { border: 1px solid #ddd; padding: 6px; border-radius: 8px; cursor: pointer; flex: 1; margin: 0 4px; text-align: center; font-size: 11px; font-weight: bold; }
         .op-pag.selected { border-color: var(--secondary); background: #e8f5e9; color: var(--secondary); }
 
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; font-size: 14px; }
-        .btn-enviar { width: 100%; background: #25d366; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 1.1em; cursor: pointer; }
+        input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 10px; box-sizing: border-box; font-size: 16px; /* Aumentado para evitar zoom no iPhone */ transition: 0.3s; }
+        input:focus { border-color: var(--primary); outline: none; background: #fff; }
+        .btn-enviar { width: 100%; background: #25d366; color: white; border: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1.1em; }
     </style>
 </head>
-<body>
+<body onclick="fecharTeclado(event)">
 
     <h1>Petiscos da Cici 🍕</h1>
-    <div id="saudacao" style="text-align: center; font-weight: bold; color: #555; margin-bottom: 10px;"></div>
+    <div id="saudacao" style="text-align: center; font-weight: bold; color: #555;"></div>
 
-    <div id="loading" style="text-align:center; padding:50px; color: #999;">Carregando cardápio...</div>
+    <div id="loading" style="text-align:center; padding:50px; color: #999;">Abrindo cardápio...</div>
+    
     <div class="grid-produtos" id="cardapio"></div>
 
-    <div class="footer">
+    <div class="footer" id="meuRodape">
         <div class="total-container">
-            <span style="font-weight: bold;">Total do Pedido:</span>
+            <span style="font-size: 14px; font-weight: bold;">Total:</span>
             <span class="total-valor">R$ <span id="valor-total">0,00</span></span>
         </div>
 
-        <div style="font-weight: bold; margin-bottom: 5px; color: #333; font-size: 14px;">Forma de Pagamento:</div>
         <div class="pagamento-opcoes">
             <div class="op-pag" onclick="setPagamento('PIX', this)">💠 PIX</div>
             <div class="op-pag" onclick="setPagamento('Cartão', this)">💳 Cartão</div>
             <div class="op-pag" onclick="setPagamento('Dinheiro', this)">💵 Dinheiro</div>
         </div>
-        <input type="text" id="endereco" placeholder="Endereço (Rua, Nº, Bairro)">
-        <button class="btn-enviar" onclick="finalizarPedido()">✅ Confirmar e Finalizar</button>
+        
+        <input type="text" id="endereco" placeholder="Endereço de Entrega" onclick="event.stopPropagation()">
+        <button class="btn-enviar" onclick="finalizarPedido()">✅ Enviar Pedido</button>
     </div>
 
 <script>
@@ -67,10 +68,12 @@
     let valorTotalGeral = 0;
     let formaPagamento = "";
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const nomeUser = urlParams.get('nome') || "Cliente";
-    const telUser = urlParams.get('tel') || "Não informado";
-    document.getElementById('saudacao').innerText = `Olá, ${nomeUser}! 👋`;
+    // Lógica para esconder o teclado ao tocar fora (Estilo WhatsApp)
+    function fecharTeclado(event) {
+        if (event.target.id !== 'endereco') {
+            document.getElementById('endereco').blur();
+        }
+    }
 
     async function carregar() {
         try {
@@ -80,23 +83,22 @@
             document.getElementById('loading').style.display = 'none';
             
             produtosData.forEach((p, index) => {
-                // Limpa o preço para número (remove R$, troca vírgula por ponto)
                 let precoLimpo = parseFloat(p.preco.toString().replace('R$', '').replace('.', '').replace(',', '.').trim());
                 
                 lista.innerHTML += `
                     <div class="card">
-                        <img src="${p.imagem}" onerror="this.src='https://via.placeholder.com/150?text=Petiscos'">
+                        <img src="${p.imagem}" onerror="this.src='https://via.placeholder.com/150?text=Cici'">
                         <span class="nome">${p.nome}</span>
                         <span class="preco">R$ ${p.preco}</span>
                         <div class="controles">
-                            <button class="btn-qtd" onclick="mudarQtd('${p.nome}', ${precoLimpo}, -1, ${index})">−</button>
+                            <button class="btn-qtd" onclick="event.stopPropagation(); mudarQtd('${p.nome}', ${precoLimpo}, -1, ${index})">−</button>
                             <span class="qtd-num" id="qtd-${index}">0</span>
-                            <button class="btn-qtd" onclick="mudarQtd('${p.nome}', ${precoLimpo}, 1, ${index})">+</button>
+                            <button class="btn-qtd" onclick="event.stopPropagation(); mudarQtd('${p.nome}', ${precoLimpo}, 1, ${index})">+</button>
                         </div>
                     </div>`;
             });
         } catch (e) {
-            document.getElementById('loading').innerText = "Erro ao carregar itens.";
+            document.getElementById('loading').innerText = "Erro ao carregar.";
         }
     }
 
@@ -104,11 +106,7 @@
         if (!carrinho[nome]) carrinho[nome] = 0;
         const qtdAnterior = carrinho[nome];
         carrinho[nome] = Math.max(0, carrinho[nome] + delta);
-        
-        if (carrinho[nome] !== qtdAnterior) {
-            valorTotalGeral += delta * preco;
-        }
-
+        if (carrinho[nome] !== qtdAnterior) valorTotalGeral += delta * preco;
         document.getElementById(`qtd-${index}`).innerText = carrinho[nome];
         document.getElementById('valor-total').innerText = Math.max(0, valorTotalGeral).toLocaleString('pt-BR', {minimumFractionDigits: 2});
     }
@@ -117,14 +115,14 @@
         formaPagamento = tipo;
         document.querySelectorAll('.op-pag').forEach(e => e.classList.remove('selected'));
         el.classList.add('selected');
+        event.stopPropagation();
     }
 
     async function finalizarPedido() {
         const endereco = document.getElementById('endereco').value;
-        if (!endereco || !formaPagamento) return alert("Preencha o endereço e o pagamento!");
-
+        if (!endereco || !formaPagamento) return alert("Preencha endereço e pagamento!");
         const itensFiltrados = Object.entries(carrinho).filter(([_, q]) => q > 0);
-        if (itensFiltrados.length === 0) return alert("Seu carrinho está vazio!");
+        if (itensFiltrados.length === 0) return alert("Carrinho vazio!");
 
         const pedidoTexto = itensFiltrados.map(([n, q]) => `${q}x ${n}`).join(', ');
 
@@ -132,8 +130,8 @@
             method: 'POST',
             mode: 'no-cors',
             body: JSON.stringify({
-                nome: nomeUser,
-                telefone: telUser,
+                nome: new URLSearchParams(window.location.search).get('nome') || "Cliente",
+                telefone: new URLSearchParams(window.location.search).get('tel') || "Não informado",
                 itens: pedidoTexto,
                 total: valorTotalGeral.toFixed(2),
                 endereco: endereco,
@@ -141,8 +139,7 @@
             })
         });
 
-        const msg = `Olá! Acabei de enviar meu pedido pelo site e estou aguardando a sua confirmação. 👋`;
-        window.open(`https://api.whatsapp.com/send?phone=40775255771&text=${msg}`);
+        window.open(`https://api.whatsapp.com/send?phone=40775255771&text=Olá! Fiz meu pedido pelo site e estou aguardando. 👋`);
     }
 
     carregar();
