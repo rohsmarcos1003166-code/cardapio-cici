@@ -3,135 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Petiscos da Cici - Cardápio Digital</title>
+    <title>Petiscos da Cici - Cardápio</title>
     <style>
-        :root { --primary: #d32f2f; --secondary: #2e7d32; --bg: #f8f9fa; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: var(--primary); margin: 10px 0 5px 0; }
-        .subtitulo { text-align: center; color: #666; margin-bottom: 20px; font-size: 0.9em; }
-        .produto-card { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; background: #fff; margin-bottom: 5px; border-radius: 8px; }
-        .produto-img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; background: #eee; }
-        .produto-info { flex-grow: 1; margin-left: 15px; }
-        .produto-nome { font-weight: bold; font-size: 1.1em; color: #333; }
-        .produto-preco { color: var(--secondary); font-weight: bold; display: block; margin-top: 5px; }
-        .btn-add { background: var(--primary); color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 20px; font-weight: bold; }
-        .carrinho-fixo { background: #fff5f5; border: 2px dashed var(--primary); padding: 15px; border-radius: 10px; margin-top: 20px; }
-        .item-carrinho { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95em; border-bottom: 1px solid #ffebeb; padding-bottom: 5px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
-        .total-box { font-size: 1.3em; font-weight: bold; text-align: right; margin: 15px 0; color: var(--primary); }
-        .btn-finalizar { width: 100%; background: #25d366; color: white; border: none; padding: 18px; border-radius: 8px; font-weight: bold; font-size: 1.1em; cursor: pointer; margin-top: 10px; }
+        :root { --primary: #d32f2f; --secondary: #2e7d32; --bg: #f4f4f4; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 100px; }
+        h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
+        
+        /* Layout em Grade (Estilo iFood) */
+        .grid-produtos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .card { background: white; border-radius: 12px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+        .card img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; }
+        .nome { font-weight: bold; font-size: 0.9em; margin: 8px 0; display: block; height: 35px; }
+        .preco { color: var(--secondary); font-weight: bold; margin-bottom: 10px; display: block; }
+        
+        /* Controles de Quantidade */
+        .controles { display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-qtd { background: var(--primary); color: white; border: none; width: 28px; height: 28px; border-radius: 50%; font-weight: bold; cursor: pointer; }
+        .qtd-num { font-weight: bold; width: 20px; }
+
+        /* Pagamento por Ícones */
+        .pagamento-opcoes { display: flex; justify-content: space-around; margin: 15px 0; }
+        .op-pag { border: 2px solid #ddd; padding: 10px; border-radius: 10px; cursor: pointer; flex: 1; margin: 0 5px; text-align: center; transition: 0.3s; }
+        .op-pag.selected { border-color: var(--secondary); background: #e8f5e9; }
+        .op-pag i { font-size: 20px; display: block; }
+
+        /* Rodapé de Finalização */
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; }
+        .btn-enviar { width: 100%; background: #25d366; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 1.1em; }
     </style>
 </head>
 <body>
 
-<div class="container">
     <h1>Petiscos da Cici 🍕</h1>
-    <p class="subtitulo">O melhor sabor da região!</p>
+    <div id="saudacao" style="text-align: center; font-weight: bold; color: #555;"></div>
 
-    <div id="loading" style="text-align:center; padding:20px; color: #999;">Buscando cardápio...</div>
-    <div id="cardapio"></div>
+    <div class="grid-produtos" id="cardapio">
+        </div>
 
-    <div class="carrinho-fixo">
-        <h3>🛒 Seu Pedido</h3>
-        <div id="itens-selecionados" style="color: #666; font-style: italic;">Seu carrinho está vazio</div>
-        <div class="total-box">Total: R$ <span id="valor-total">0,00</span></div>
-        
-        <input type="text" id="cliente-nome" placeholder="Seu Nome">
-        <input type="text" id="cliente-end" placeholder="Endereço de Entrega">
-        <input type="text" id="cliente-pag" placeholder="Forma de Pagamento">
-        
-        <button class="btn-finalizar" onclick="enviarPedido()">
-            ✅ Enviar Pedido pelo WhatsApp
-        </button>
+    <div class="footer">
+        <div class="pagamento-opcoes">
+            <div class="op-pag" onclick="setPagamento('PIX', this)">💠<br>PIX</div>
+            <div class="op-pag" onclick="setPagamento('Cartão', this)">💳<br>Cartão</div>
+            <div class="op-pag" onclick="setPagamento('Dinheiro', this)">💵<br>Dinheiro</div>
+        </div>
+        <input type="text" id="endereco" placeholder="Digite seu Endereço Completo">
+        <button class="btn-enviar" onclick="finalizarPedido()">Finalizar Pedido</button>
     </div>
-</div>
 
 <script>
-    // Link do seu Google Script (Confirme se é o mesmo que você está usando)
-    const LINK_SISTEMA = "https://script.google.com/macros/s/AKfycbzITE5_PQ0mumkTKfJFGEAnsjFQQUTxcFJwCxc89nTQzWkGjfQZW_Vvr7Ga-3Tskiyn/exec";
+    const LINK_SISTEMA = "SEU_LINK_DO_GOOGLE_SCRIPT_AQUI"; // Mantenha o seu link atual
+    let produtosData = [];
+    let carrinho = {};
+    let formaPagamento = "";
 
-    let carrinho = [];
-    let total = 0;
+    // Pega Nome e Telefone da URL (Link encurtado ou do robô)
+    const urlParams = new URLSearchParams(window.location.search);
+    const nomeUser = urlParams.get('nome') || "Cliente";
+    const telUser = urlParams.get('tel') || "Não informado";
+    document.getElementById('saudacao').innerText = `Olá, ${nomeUser}! 👋`;
 
-    async function carregarCardapio() {
-        try {
-            const res = await fetch(LINK_SISTEMA);
-            const produtos = await res.json();
-            const lista = document.getElementById('cardapio');
-            document.getElementById('loading').style.display = 'none';
-            
-            produtos.forEach(p => {
-                lista.innerHTML += `
-                    <div class="produto-card">
-                        <img src="${p.imagem}" class="produto-img" onerror="this.src='https://via.placeholder.com/80?text=Comida'">
-                        <div class="produto-info">
-                            <span class="produto-nome">${p.nome}</span>
-                            <span class="produto-preco">R$ ${p.preco}</span>
-                        </div>
-                        <button class="btn-add" onclick="addCarrinho('${p.nome}', ${parseFloat(p.preco.toString().replace(',','.'))})">+</button>
-                    </div>`;
-            });
-        } catch (err) {
-            document.getElementById('loading').innerText = "Erro ao carregar cardápio.";
-        }
-    }
-
-    function addCarrinho(nome, preco) {
-        carrinho.push({nome, preco});
-        total += preco;
-        renderCarrinho();
-    }
-
-    function renderCarrinho() {
-        const div = document.getElementById('itens-selecionados');
-        const totalSpan = document.getElementById('valor-total');
-        div.innerHTML = carrinho.map(i => `
-            <div class="item-carrinho">
-                <span>${i.nome}</span>
-                <span>R$ ${i.preco.toFixed(2).replace('.',',')}</span>
-            </div>
-        `).join('');
-        totalSpan.innerText = total.toFixed(2).replace('.',',');
-    }
-
-    async function enviarPedido() {
-        const nome = document.getElementById('cliente-nome').value;
-        const end = document.getElementById('cliente-end').value;
-        const pag = document.getElementById('cliente-pag').value;
-
-        if(!nome || !end || carrinho.length === 0) {
-            alert("Preencha os campos e adicione itens!");
-            return;
-        }
-
-        const pedidoTexto = carrinho.map(i => i.nome).join(', ');
+    async function carregar() {
+        const res = await fetch(LINK_SISTEMA);
+        produtosData = await res.json();
+        const lista = document.getElementById('cardapio');
         
-        // ENVIO DOS DADOS PARA O ROBÔ (PLANILHA)
-        const dados = {
-            nome: nome,
-            itens: pedidoTexto,
-            total: total.toFixed(2),
-            endereco: end,
-            pagamento: pag
-        };
+        produtosData.forEach((p, index) => {
+            lista.innerHTML += `
+                <div class="card">
+                    <img src="${p.imagem}" onerror="this.src='https://via.placeholder.com/150'">
+                    <span class="nome">${p.nome}</span>
+                    <span class="preco">R$ ${p.preco}</span>
+                    <div class="controles">
+                        <button class="btn-qtd" onclick="mudarQtd('${p.nome}', -1, ${index})">-</button>
+                        <span class="qtd-num" id="qtd-${index}">0</span>
+                        <button class="btn-qtd" onclick="mudarQtd('${p.nome}', 1, ${index})">+</button>
+                    </div>
+                </div>`;
+        });
+    }
 
-        try {
-            fetch(LINK_SISTEMA, { 
-                method: 'POST', 
-                mode: 'no-cors',
-                body: JSON.stringify(dados)
-            });
-        } catch (e) { console.log("Erro no envio para planilha"); }
+    function mudarQtd(nome, delta, index) {
+        if (!carrinho[nome]) carrinho[nome] = 0;
+        carrinho[nome] = Math.max(0, carrinho[nome] + delta);
+        document.getElementById(`qtd-${index}`).innerText = carrinho[nome];
+    }
 
-        // MENSAGEM WHATSAPP
-        const msg = `*Novo Pedido - Petiscos da Cici*%0A%0A*Cliente:* ${nome}%0A*Itens:* ${pedidoTexto}%0A*Total:* R$ ${total.toFixed(2).replace('.',',')}%0A*Endereço:* ${end}%0A*Pagamento:* ${pag}`;
-        
-        // Link usando a API oficial que funciona melhor com números internacionais
+    function setPagamento(tipo, el) {
+        formaPagamento = tipo;
+        document.querySelectorAll('.op-pag').forEach(e => e.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+
+    async function finalizarPedido() {
+        const endereco = document.getElementById('endereco').value;
+        if (!endereco || !formaPagamento) return alert("Por favor, preencha o endereço e escolha o pagamento!");
+
+        const itensFiltrados = Object.entries(carrinho).filter(([_, q]) => q > 0);
+        if (itensFiltrados.length === 0) return alert("Seu carrinho está vazio!");
+
+        const pedidoTexto = itensFiltrados.map(([n, q]) => `${q}x ${n}`).join(', ');
+
+        // Envia TUDO para a planilha (Robô)
+        await fetch(LINK_SISTEMA, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                nome: nomeUser,
+                telefone: telUser,
+                itens: pedidoTexto,
+                endereco: endereco,
+                pagamento: formaPagamento
+            })
+        });
+
+        // Abre o WhatsApp apenas com a saudação simples
+        const msg = `Olá! Acabei de enviar meu pedido pelo site e estou aguardando a sua confirmação. 👋`;
         window.open(`https://api.whatsapp.com/send?phone=40775255771&text=${msg}`);
     }
 
-    carregarCardapio();
+    carregar();
 </script>
 </body>
 </html>
