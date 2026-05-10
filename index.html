@@ -6,10 +6,10 @@
     <title>Petiscos da Cici - Cardápio</title>
     <style>
         :root { --primary: #d32f2f; --secondary: #2e7d32; --bg: #f4f4f4; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 180px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 220px; }
         h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
         
-        /* Layout em Grade (Estilo iFood) */
+        /* Layout em Grade */
         .grid-produtos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
         .card { background: white; border-radius: 12px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
         .card img { width: 100%; height: 110px; object-fit: cover; border-radius: 8px; background: #eee; }
@@ -21,13 +21,19 @@
         .btn-qtd { background: var(--primary); color: white; border: none; width: 28px; height: 28px; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 18px; }
         .qtd-num { font-weight: bold; width: 20px; text-align: center; }
 
-        /* Pagamento por Ícones */
+        /* Rodapé Fixo */
+        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); z-index: 100; border-radius: 20px 20px 0 0; }
+        
+        /* Caixa do Total */
+        .total-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: #fff5f5; border-radius: 8px; border: 1px solid #ffcdd2; }
+        .total-label { font-weight: bold; color: #333; font-size: 16px; }
+        .total-valor { font-size: 20px; font-weight: bold; color: var(--primary); }
+
+        /* Pagamento */
         .pagamento-opcoes { display: flex; justify-content: space-around; margin: 10px 0; }
         .op-pag { border: 2px solid #ddd; padding: 8px; border-radius: 10px; cursor: pointer; flex: 1; margin: 0 5px; text-align: center; transition: 0.3s; font-size: 12px; font-weight: bold; }
         .op-pag.selected { border-color: var(--secondary); background: #e8f5e9; color: var(--secondary); }
 
-        /* Rodapé de Finalização */
-        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); z-index: 100; border-radius: 20px 20px 0 0; }
         input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; font-size: 14px; }
         .btn-enviar { width: 100%; background: #25d366; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 1.1em; cursor: pointer; }
     </style>
@@ -41,6 +47,11 @@
     <div class="grid-produtos" id="cardapio"></div>
 
     <div class="footer">
+        <div class="total-container">
+            <span class="total-label">Total do Pedido:</span>
+            <span class="total-valor">R$ <span id="valor-total">0,00</span></span>
+        </div>
+
         <div style="font-weight: bold; margin-bottom: 8px; color: #333; font-size: 14px;">Forma de Pagamento:</div>
         <div class="pagamento-opcoes">
             <div class="op-pag" onclick="setPagamento('PIX', this)">💠 PIX</div>
@@ -52,17 +63,16 @@
     </div>
 
 <script>
-    // LINK CORRIGIDO AQUI
     const LINK_SISTEMA = "https://script.google.com/macros/s/AKfycbzITE5_PQ0mumkTKfJFGEAnsjFQQUTxcFJwCxc89nTQzWkGjfQZW_Vvr7Ga-3Tskiyn/exec";
     
     let produtosData = [];
     let carrinho = {};
+    let valorTotalGeral = 0;
     let formaPagamento = "";
 
-    // Pega Nome e Telefone da URL
     const urlParams = new URLSearchParams(window.location.search);
     const nomeUser = urlParams.get('nome') || "Cliente";
-    const telUser = urlParams.get('tel') || "Não identificado";
+    const telUser = urlParams.get('tel') || "Não informado";
     document.getElementById('saudacao').innerText = `Olá, ${nomeUser}! 👋`;
 
     async function carregar() {
@@ -79,9 +89,9 @@
                         <span class="nome">${p.nome}</span>
                         <span class="preco">R$ ${p.preco}</span>
                         <div class="controles">
-                            <button class="btn-qtd" onclick="mudarQtd('${p.nome}', -1, ${index})">−</button>
+                            <button class="btn-qtd" onclick="mudarQtd('${p.nome}', ${p.preco.toString().replace(',','.')}, -1, ${index})">−</button>
                             <span class="qtd-num" id="qtd-${index}">0</span>
-                            <button class="btn-qtd" onclick="mudarQtd('${p.nome}', 1, ${index})">+</button>
+                            <button class="btn-qtd" onclick="mudarQtd('${p.nome}', ${p.preco.toString().replace(',','.')}, 1, ${index})">+</button>
                         </div>
                     </div>`;
             });
@@ -90,10 +100,19 @@
         }
     }
 
-    function mudarQtd(nome, delta, index) {
+    function mudarQtd(nome, preco, delta, index) {
         if (!carrinho[nome]) carrinho[nome] = 0;
-        carrinho[nome] = Math.max(0, carrinho[nome] + delta);
+        
+        const novaQtd = Math.max(0, carrinho[nome] + delta);
+        
+        // Atualiza o valor total geral
+        if (novaQtd !== carrinho[nome]) {
+            valorTotalGeral += delta * preco;
+        }
+
+        carrinho[nome] = novaQtd;
         document.getElementById(`qtd-${index}`).innerText = carrinho[nome];
+        document.getElementById('valor-total').innerText = Math.max(0, valorTotalGeral).toFixed(2).replace('.', ',');
     }
 
     function setPagamento(tipo, el) {
@@ -108,11 +127,10 @@
         if (!formaPagamento) return alert("Escolha uma forma de pagamento!");
 
         const itensFiltrados = Object.entries(carrinho).filter(([_, q]) => q > 0);
-        if (itensFiltrados.length === 0) return alert("Seu carrinho está vazio! Adicione algum petisco.");
+        if (itensFiltrados.length === 0) return alert("Seu carrinho está vazio!");
 
         const pedidoTexto = itensFiltrados.map(([n, q]) => `${q}x ${n}`).join(', ');
 
-        // Envia TUDO para a planilha (Robô)
         fetch(LINK_SISTEMA, {
             method: 'POST',
             mode: 'no-cors',
@@ -120,12 +138,12 @@
                 nome: nomeUser,
                 telefone: telUser,
                 itens: pedidoTexto,
+                total: valorTotalGeral.toFixed(2),
                 endereco: endereco,
                 pagamento: formaPagamento
             })
         });
 
-        // WhatsApp apenas com a saudação
         const msg = `Olá! Acabei de enviar meu pedido pelo site e estou aguardando a sua confirmação. 👋`;
         window.open(`https://api.whatsapp.com/send?phone=40775255771&text=${msg}`);
     }
