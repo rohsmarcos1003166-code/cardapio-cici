@@ -11,7 +11,7 @@
         h1 { text-align: center; color: var(--primary); margin: 10px 0 5px 0; }
         .subtitulo { text-align: center; color: #666; margin-bottom: 20px; font-size: 0.9em; }
         .produto-card { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; background: #fff; margin-bottom: 5px; border-radius: 8px; }
-        .produto-img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; background: #eee; }
+        .produto-img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; background: #eee; border: 1px solid #ddd; }
         .produto-info { flex-grow: 1; margin-left: 15px; }
         .produto-nome { font-weight: bold; font-size: 1.1em; color: #333; }
         .produto-preco { color: var(--secondary); font-weight: bold; display: block; margin-top: 5px; }
@@ -28,28 +28,21 @@
 <div class="container">
     <h1>Petiscos da Cici 🍕</h1>
     <p class="subtitulo">O melhor sabor da região!</p>
-
-    <div id="loading" style="text-align:center; padding:20px; color: #999;">Buscando cardápio...</div>
+    <div id="loading" style="text-align:center; padding:20px; color: #999;">Carregando delícias...</div>
     <div id="cardapio"></div>
-
     <div class="carrinho-fixo">
         <h3>🛒 Seu Pedido</h3>
         <div id="itens-selecionados" style="color: #666; font-style: italic;">Seu carrinho está vazio</div>
         <div class="total-box">Total: R$ <span id="valor-total">0,00</span></div>
-        
         <input type="text" id="cliente-nome" placeholder="Seu Nome">
         <input type="text" id="cliente-end" placeholder="Endereço de Entrega">
-        <input type="text" id="cliente-pag" placeholder="Forma de Pagamento">
-        
-        <button class="btn-finalizar" onclick="enviarPedido()">
-            ✅ Enviar Pedido pelo WhatsApp
-        </button>
+        <input type="text" id="cliente-pag" placeholder="Forma de Pagamento (Pix/Cartão/Dinheiro)">
+        <button class="btn-finalizar" onclick="enviarPedido()">✅ Enviar Pedido pelo WhatsApp</button>
     </div>
 </div>
 
 <script>
     const LINK_SISTEMA = "https://script.google.com/macros/s/AKfycbzITE5_PQ0mumkTKfJFGEAnsjFQQUTxcFJwCxc89nTQzWkGjfQZW_Vvr7Ga-3Tskiyn/exec";
-
     let carrinho = [];
     let total = 0;
 
@@ -61,18 +54,22 @@
             document.getElementById('loading').style.display = 'none';
             
             produtos.forEach(p => {
+                // Tenta pegar o link da imagem independente do nome da coluna (imagem ou link_imagem)
+                const imgLink = p.imagem || p.link_imagem || p.Link_Imagem || '';
+                const precoFormatado = p.preco.toString().replace(',', '.');
+
                 lista.innerHTML += `
                     <div class="produto-card">
-                        <img src="${p.imagem}" class="produto-img" onerror="this.src='https://via.placeholder.com/80?text=Comida'">
+                        <img src="${imgLink}" class="produto-img" onerror="this.src='https://via.placeholder.com/80?text=Petiscos'">
                         <div class="produto-info">
                             <span class="produto-nome">${p.nome}</span>
                             <span class="produto-preco">R$ ${p.preco}</span>
                         </div>
-                        <button class="btn-add" onclick="addCarrinho('${p.nome}', ${parseFloat(p.preco.toString().replace(',','.'))})">+</button>
+                        <button class="btn-add" onclick="addCarrinho('${p.nome}', ${parseFloat(precoFormatado)})">+</button>
                     </div>`;
             });
         } catch (err) {
-            document.getElementById('loading').innerText = "Erro ao carregar cardápio.";
+            document.getElementById('loading').innerText = "Erro ao carregar. Verifique a conexão.";
         }
     }
 
@@ -85,34 +82,31 @@
     function renderCarrinho() {
         const div = document.getElementById('itens-selecionados');
         const totalSpan = document.getElementById('valor-total');
-        div.innerHTML = carrinho.map(i => `
-            <div class="item-carrinho">
-                <span>${i.nome}</span>
-                <span>R$ ${i.preco.toFixed(2).replace('.',',')}</span>
-            </div>
-        `).join('');
+        if(carrinho.length === 0) {
+            div.innerHTML = "Seu carrinho está vazio";
+        } else {
+            div.innerHTML = carrinho.map(i => `
+                <div class="item-carrinho">
+                    <span>${i.nome}</span>
+                    <span>R$ ${i.preco.toFixed(2).replace('.',',')}</span>
+                </div>
+            `).join('');
+        }
         totalSpan.innerText = total.toFixed(2).replace('.',',');
     }
 
-    async function enviarPedido() {
+    function enviarPedido() {
         const nome = document.getElementById('cliente-nome').value;
         const end = document.getElementById('cliente-end').value;
         const pag = document.getElementById('cliente-pag').value;
 
         if(!nome || !end || carrinho.length === 0) {
-            alert("Preencha os campos e adicione itens!");
+            alert("Por favor, preencha nome, endereço e adicione itens!");
             return;
         }
 
-        const pedidoTexto = carrinho.map(i => i.nome).join(', ');
-        
-        // Salva na planilha
-        fetch(LINK_SISTEMA, { method: 'POST', body: JSON.stringify({
-            nome: nome, itens: pedidoTexto, total: total.toFixed(2), endereco: end, pagamento: pag, telefone: "Site"
-        })});
-
-        // Envia Zap
-        const msg = `*Novo Pedido - Petiscos da Cici*%0A%0A*Cliente:* ${nome}%0A*Itens:* ${pedidoTexto}%0A*Total:* R$ ${total.toFixed(2).replace('.',',')}%0A*Endereço:* ${end}`;
+        const itensTexto = carrinho.map(i => i.nome).join(', ');
+        const msg = `*Novo Pedido - Petiscos da Cici*%0A%0A*Cliente:* ${nome}%0A*Itens:* ${itensTexto}%0A*Total:* R$ ${total.toFixed(2).replace('.',',')}%0A*Pagamento:* ${pag}%0A*Endereço:* ${end}`;
         window.open(`https://wa.me/5521977347786?text=${msg}`);
     }
 
