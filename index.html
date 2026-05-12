@@ -1,155 +1,51 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Petiscos do Paulo - Cardápio</title>
-    <style>
-        :root { --primary: #d32f2f; --secondary: #2e7d32; --bg: #f4f4f4; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 300px; }
-        h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
-        
-        .grid-produtos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-        .card { background: white; border-radius: 12px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 200px; }
-        .card img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; background: #eee; }
-        .nome { font-weight: bold; font-size: 0.85em; margin: 8px 0; display: block; height: 32px; overflow: hidden; }
-        .preco { color: var(--secondary); font-weight: bold; margin-bottom: 8px; display: block; }
-        
-        .controles { display: flex; align-items: center; justify-content: center; gap: 8px; background: #f9f9f9; border-radius: 20px; padding: 5px; }
-        .btn-qtd { background: var(--primary); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 20px; }
-        .qtd-num { font-weight: bold; width: 20px; }
+// --- 1. CAPTURA DOS DADOS QUE VÊM DO WHATSAPP VIA LINK ---
+const urlParams = new URLSearchParams(window.location.search);
+const nomeDoWhatsApp = urlParams.get('nome') || "Cliente";
+const telefoneDoWhatsApp = urlParams.get('tel') || "";
 
-        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); z-index: 1000; border-radius: 20px 20px 0 0; }
-        .total-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 8px 12px; background: #fff5f5; border-radius: 8px; border: 1px solid #ffcdd2; }
-        .total-valor { font-size: 18px; font-weight: bold; color: var(--primary); }
+// --- 2. FUNÇÃO PARA FINALIZAR O PEDIDO E ENVIAR PARA A PLANILHA ---
+function finalizarPedido() {
+    // Coleta as informações do carrinho (ajuste conforme o nome das suas variáveis)
+    const itensDoCarrinho = obterItensCarrinho(); // Ex: "1x Mini Pizza, 1x Coca-Cola"
+    const valorTotal = calcularTotal();           // Ex: "35.00"
+    const enderecoEntrega = documento.getElementById('campo-endereco').value;
+    const formaPagamento = documento.querySelector('input[name="pagamento"]:checked').value;
 
-        .pagamento-opcoes { display: flex; justify-content: space-around; margin-bottom: 10px; }
-        .op-pag { border: 1px solid #ddd; padding: 6px; border-radius: 8px; cursor: pointer; flex: 1; margin: 0 4px; text-align: center; font-size: 11px; font-weight: bold; }
-        .op-pag.selected { border-color: var(--secondary); background: #e8f5e9; color: var(--secondary); }
+    // --- 3. ORGANIZAÇÃO DOS DADOS NA SEQUÊNCIA DA SUA PLANILHA ---
+    // Sequência: data | cliente | telefone | itens | total | endereço | pagamento
+    const dadosParaEnvio = {
+        "data": new Date().toLocaleString("pt-BR"), 
+        "cliente": nomeDoWhatsApp,
+        "telefone": telefoneDoWhatsApp, // Aqui o robô pega o número real do link
+        "itens": itensDoCarrinho,
+        "total": valorTotal,
+        "endereco": enderecoEntrega,
+        "pagamento": formaPagamento
+    };
 
-        input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 10px; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
-        input:focus { border-color: var(--primary); outline: none; background: #fff; }
-        .btn-enviar { width: 100%; background: #25d366; color: white; border: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1.1em; }
-    </style>
-</head>
-<body onclick="fecharTeclado(event)">
+    // --- 4. ENVIO PARA O GOOGLE APPS SCRIPT (PLANILHA) ---
+    // Substitua a URL abaixo pela sua URL de Implantação do Google
+    const urlPlanilha = "SUA_URL_DO_GOOGLE_APPS_SCRIPT_AQUI";
 
-    <h1>Petiscos do Paulo 🍕</h1>
-    <div id="saudacao" style="text-align: center; font-weight: bold; color: #555;"></div>
+    fetch(urlPlanilha, {
+        method: 'POST',
+        mode: 'no-cors', // Importante para evitar erros de segurança simples
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dadosParaEnvio)
+    })
+    .then(() => {
+        alert("Pedido de " + nomeDoWhatsApp + " enviado com sucesso!");
+        // Opcional: Redirecionar de volta para o WhatsApp para confirmar
+        enviarConfirmacaoWhatsApp(dadosParaEnvio);
+    })
+    .catch(error => console.error("Erro ao enviar para a planilha:", error));
+}
 
-    <div id="loading" style="text-align:center; padding:50px; color: #999;">Abrindo cardápio...</div>
-    
-    <div class="grid-produtos" id="cardapio"></div>
-
-    <div class="footer" id="meuRodape">
-        <div class="total-container">
-            <span style="font-size: 14px; font-weight: bold;">Total:</span>
-            <span class="total-valor">R$ <span id="valor-total">0,00</span></span>
-        </div>
-
-        <div class="pagamento-opcoes">
-            <div class="op-pag" onclick="setPagamento('PIX', this)">💠 PIX</div>
-            <div class="op-pag" onclick="setPagamento('Cartão', this)">💳 Cartão</div>
-            <div class="op-pag" onclick="setPagamento('Dinheiro', this)">💵 Dinheiro</div>
-        </div>
-        
-        <input type="text" id="endereco" placeholder="Endereço de Entrega" onclick="event.stopPropagation()">
-        <button class="btn-enviar" onclick="finalizarPedido()">✅ Enviar Pedido</button>
-    </div>
-
-<script>
-    const LINK_SISTEMA = "https://script.google.com/macros/s/AKfycbzITE5_PQ0mumkTKfJFGEAnsjFQQUTxcFJwCxc89nTQzWkGjfQZW_Vvr7Ga-3Tskiyn/exec";
-    
-    let produtosData = [];
-    let carrinho = {};
-    let valorTotalGeral = 0;
-    let formaPagamento = "";
-
-    // Captura os dados da URL logo que o site abre
-    const urlParams = new URLSearchParams(window.location.search);
-    const nomeUrl = urlParams.get('nome') ? decodeURIComponent(urlParams.get('nome')) : "Cliente";
-    // Limpa o telefone: deixa apenas números
-    const telUrl = urlParams.get('tel') ? urlParams.get('tel').replace(/\D/g, "") : "Não informado";
-
-    if(nomeUrl !== "Cliente") {
-        document.getElementById('saudacao').innerText = `Olá, ${nomeUrl}! Escolha suas delícias:`;
-    }
-
-    function fecharTeclado(event) {
-        if (event.target.id !== 'endereco') {
-            document.getElementById('endereco').blur();
-        }
-    }
-
-    async function carregar() {
-        try {
-            const res = await fetch(LINK_SISTEMA);
-            produtosData = await res.json();
-            const lista = document.getElementById('cardapio');
-            document.getElementById('loading').style.display = 'none';
-            
-            produtosData.forEach((p, index) => {
-                let precoLimpo = parseFloat(p.preco.toString().replace('R$', '').replace('.', '').replace(',', '.').trim());
-                
-                lista.innerHTML += `
-                    <div class="card">
-                        <img src="${p.imagem}" onerror="this.src='https://via.placeholder.com/150?text=Cici'">
-                        <span class="nome">${p.nome}</span>
-                        <span class="preco">R$ ${p.preco}</span>
-                        <div class="controles">
-                            <button class="btn-qtd" onclick="event.stopPropagation(); mudarQtd('${p.nome}', ${precoLimpo}, -1, ${index})">−</button>
-                            <span class="qtd-num" id="qtd-${index}">0</span>
-                            <button class="btn-qtd" onclick="event.stopPropagation(); mudarQtd('${p.nome}', ${precoLimpo}, 1, ${index})">+</button>
-                        </div>
-                    </div>`;
-            });
-        } catch (e) {
-            document.getElementById('loading').innerText = "Erro ao carregar.";
-        }
-    }
-
-    function mudarQtd(nome, preco, delta, index) {
-        if (!carrinho[nome]) carrinho[nome] = 0;
-        const qtdAnterior = carrinho[nome];
-        carrinho[nome] = Math.max(0, carrinho[nome] + delta);
-        if (carrinho[nome] !== qtdAnterior) valorTotalGeral += delta * preco;
-        document.getElementById(`qtd-${index}`).innerText = carrinho[nome];
-        document.getElementById('valor-total').innerText = Math.max(0, valorTotalGeral).toLocaleString('pt-BR', {minimumFractionDigits: 2});
-    }
-
-    function setPagamento(tipo, el) {
-        formaPagamento = tipo;
-        document.querySelectorAll('.op-pag').forEach(e => e.classList.remove('selected'));
-        el.classList.add('selected');
-        event.stopPropagation();
-    }
-
-    async function finalizarPedido() {
-        const endereco = document.getElementById('endereco').value;
-        if (!endereco || !formaPagamento) return alert("Preencha endereço e pagamento!");
-        const itensFiltrados = Object.entries(carrinho).filter(([_, q]) => q > 0);
-        if (itensFiltrados.length === 0) return alert("Carrinho vazio!");
-
-        const pedidoTexto = itensFiltrados.map(([n, q]) => `${q}x ${n}`).join(', ');
-
-        // Envio para a Planilha via Robô 2
-        fetch(LINK_SISTEMA, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({
-                nome: nomeUrl,
-                telefone: telUrl,
-                itens: pedidoTexto,
-                total: valorTotalGeral.toFixed(2),
-                endereco: endereco,
-                pagamento: formaPagamento
-            })
-        });
-
-        window.open(`https://api.whatsapp.com/send?phone=40775255771&text=Olá! Fiz meu pedido pelo site e estou aguardando. 👋`);
-    }
-
-    carregar();
-</script>
-</body>
-</html>
+// Função auxiliar para enviar a mensagem final de volta ao WhatsApp
+function enviarConfirmacaoWhatsApp(dados) {
+    const mensagem = `Olá, meu pedido foi feito!\nItens: ${dados.itens}\nTotal: ${dados.total}`;
+    const linkWhats = `https://wa.me/SEU_NUMERO_AQUI?text=${encodeURIComponent(mensagem)}`;
+    window.location.href = linkWhats;
+}
