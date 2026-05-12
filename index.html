@@ -1,66 +1,5 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Petiscos do Paulo - Cardápio</title>
-    <style>
-        :root { --primary: #d32f2f; --secondary: #2e7d32; --bg: #f4f4f4; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 300px; /* Espaço extra para as bebidas aparecerem */ }
-        h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
-        
-        /* Layout Grade iFood */
-        .grid-produtos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-        .card { background: white; border-radius: 12px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 200px; }
-        .card img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; background: #eee; }
-        .nome { font-weight: bold; font-size: 0.85em; margin: 8px 0; display: block; height: 32px; overflow: hidden; }
-        .preco { color: var(--secondary); font-weight: bold; margin-bottom: 8px; display: block; }
-        
-        /* Controles de Quantidade */
-        .controles { display: flex; align-items: center; justify-content: center; gap: 8px; background: #f9f9f9; border-radius: 20px; padding: 5px; }
-        .btn-qtd { background: var(--primary); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 20px; }
-        .qtd-num { font-weight: bold; width: 20px; }
-
-        /* Rodapé Estilo WhatsApp */
-        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); z-index: 1000; border-radius: 20px 20px 0 0; }
-        .total-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 8px 12px; background: #fff5f5; border-radius: 8px; border: 1px solid #ffcdd2; }
-        .total-valor { font-size: 18px; font-weight: bold; color: var(--primary); }
-
-        .pagamento-opcoes { display: flex; justify-content: space-around; margin-bottom: 10px; }
-        .op-pag { border: 1px solid #ddd; padding: 6px; border-radius: 8px; cursor: pointer; flex: 1; margin: 0 4px; text-align: center; font-size: 11px; font-weight: bold; }
-        .op-pag.selected { border-color: var(--secondary); background: #e8f5e9; color: var(--secondary); }
-
-        input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 10px; box-sizing: border-box; font-size: 16px; /* Aumentado para evitar zoom no iPhone */ transition: 0.3s; }
-        input:focus { border-color: var(--primary); outline: none; background: #fff; }
-        .btn-enviar { width: 100%; background: #25d366; color: white; border: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1.1em; }
-    </style>
-</head>
-<body onclick="fecharTeclado(event)">
-
-    <h1>Petiscos do Paulo 🍕</h1>
-    <div id="saudacao" style="text-align: center; font-weight: bold; color: #555;"></div>
-
-    <div id="loading" style="text-align:center; padding:50px; color: #999;">Abrindo cardápio...</div>
-    
-    <div class="grid-produtos" id="cardapio"></div>
-
-    <div class="footer" id="meuRodape">
-        <div class="total-container">
-            <span style="font-size: 14px; font-weight: bold;">Total:</span>
-            <span class="total-valor">R$ <span id="valor-total">0,00</span></span>
-        </div>
-
-        <div class="pagamento-opcoes">
-            <div class="op-pag" onclick="setPagamento('PIX', this)">💠 PIX</div>
-            <div class="op-pag" onclick="setPagamento('Cartão', this)">💳 Cartão</div>
-            <div class="op-pag" onclick="setPagamento('Dinheiro', this)">💵 Dinheiro</div>
-        </div>
-        
-        <input type="text" id="endereco" placeholder="Endereço de Entrega" onclick="event.stopPropagation()">
-        <button class="btn-enviar" onclick="finalizarPedido()">✅ Enviar Pedido</button>
-    </div>
-
 <script>
+    // URL da sua implantação do Google Apps Script
     const LINK_SISTEMA = "https://script.google.com/macros/s/AKfycbzITE5_PQ0mumkTKfJFGEAnsjFQQUTxcFJwCxc89nTQzWkGjfQZW_Vvr7Ga-3Tskiyn/exec";
     
     let produtosData = [];
@@ -68,13 +7,26 @@
     let valorTotalGeral = 0;
     let formaPagamento = "";
 
-    // Lógica para esconder o teclado ao tocar fora (Estilo WhatsApp)
+    // CAPTURA DOS DADOS DO WHATSAPP (Vindos do Robô 1)
+    const urlParams = new URLSearchParams(window.location.search);
+    const nomeCliente = urlParams.get('nome') || "Cliente";
+    const telCliente = urlParams.get('tel') || "Não informado";
+
+    // Exibe saudação personalizada se houver nome
+    if (nomeCliente !== "Cliente") {
+        const saudacaoDiv = document.getElementById('saudacao');
+        if(saudacaoDiv) saudacaoDiv.innerText = `Olá, ${nomeCliente}!`;
+    }
+
+    // Fecha o teclado ao tocar fora (melhora experiência no celular)
     function fecharTeclado(event) {
-        if (event.target.id !== 'endereco') {
-            document.getElementById('endereco').blur();
+        const campoEndereco = document.getElementById('endereco');
+        if (event.target !== campoEndereco) {
+            campoEndereco.blur();
         }
     }
 
+    // Carrega os produtos da planilha
     async function carregar() {
         try {
             const res = await fetch(LINK_SISTEMA);
@@ -87,7 +39,7 @@
                 
                 lista.innerHTML += `
                     <div class="card">
-                        <img src="${p.imagem}" onerror="this.src='https://via.placeholder.com/150?text=Cici'">
+                        <img src="${p.imagem}" onerror="this.src='https://via.placeholder.com/150?text=Petisco'">
                         <span class="nome">${p.nome}</span>
                         <span class="preco">R$ ${p.preco}</span>
                         <div class="controles">
@@ -98,19 +50,22 @@
                     </div>`;
             });
         } catch (e) {
-            document.getElementById('loading').innerText = "Erro ao carregar.";
+            document.getElementById('loading').innerText = "Erro ao conectar com o cardápio.";
         }
     }
 
+    // Gerencia as quantidades no carrinho
     function mudarQtd(nome, preco, delta, index) {
         if (!carrinho[nome]) carrinho[nome] = 0;
         const qtdAnterior = carrinho[nome];
         carrinho[nome] = Math.max(0, carrinho[nome] + delta);
         if (carrinho[nome] !== qtdAnterior) valorTotalGeral += delta * preco;
+        
         document.getElementById(`qtd-${index}`).innerText = carrinho[nome];
         document.getElementById('valor-total').innerText = Math.max(0, valorTotalGeral).toLocaleString('pt-BR', {minimumFractionDigits: 2});
     }
 
+    // Define a forma de pagamento
     function setPagamento(tipo, el) {
         formaPagamento = tipo;
         document.querySelectorAll('.op-pag').forEach(e => e.classList.remove('selected'));
@@ -118,31 +73,42 @@
         event.stopPropagation();
     }
 
+    // FINALIZA E ENVIA PARA A PLANILHA (Sequência Correta)
     async function finalizarPedido() {
         const endereco = document.getElementById('endereco').value;
-        if (!endereco || !formaPagamento) return alert("Preencha endereço e pagamento!");
+        if (!endereco || !formaPagamento) return alert("Por favor, informe o endereço e a forma de pagamento!");
+        
         const itensFiltrados = Object.entries(carrinho).filter(([_, q]) => q > 0);
-        if (itensFiltrados.length === 0) return alert("Carrinho vazio!");
+        if (itensFiltrados.length === 0) return alert("Seu carrinho está vazio!");
 
         const pedidoTexto = itensFiltrados.map(([n, q]) => `${q}x ${n}`).join(', ');
 
+        // ORGANIZAÇÃO DOS DADOS PARA A PLANILHA (FormData)
+        const dados = new FormData();
+        dados.append("data", new Date().toLocaleString("pt-BR"));
+        dados.append("cliente", nomeCliente);
+        dados.append("telefone", telCliente); // Captura o número real do link
+        dados.append("itens", pedidoTexto);
+        dados.append("total", valorTotalGeral.toFixed(2));
+        dados.append("endereco", endereco);
+        dados.append("pagamento", formaPagamento);
+
+        // Envio Silencioso para a Planilha
         fetch(LINK_SISTEMA, {
             method: 'POST',
             mode: 'no-cors',
-            body: JSON.stringify({
-                nome: new URLSearchParams(window.location.search).get('nome') || "Cliente",
-                telefone: new URLSearchParams(window.location.search).get('tel') || "Não informado",
-                itens: pedidoTexto,
-                total: valorTotalGeral.toFixed(2),
-                endereco: endereco,
-                pagamento: formaPagamento
-            })
+            body: dados
         });
 
-        window.open(`https://api.whatsapp.com/send?phone=40775255771&text=Olá! Fiz meu pedido pelo site e estou aguardando. 👋`);
+        // Prepara mensagem de confirmação para o seu WhatsApp
+        const msgWhats = encodeURIComponent(`*NOVO PEDIDO:*\n\n*Cliente:* ${nomeCliente}\n*Itens:* ${pedidoTexto}\n*Total:* R$ ${valorTotalGeral.toFixed(2)}\n*Endereço:* ${endereco}\n*Pagamento:* ${formaPagamento}`);
+        
+        alert("Pedido enviado! Conclua a confirmação no WhatsApp.");
+        
+        // Redireciona para o seu número de atendimento
+        window.location.href = `https://api.whatsapp.com/send?phone=5521974535724&text=${msgWhats}`;
     }
 
+    // Inicia o carregamento
     carregar();
 </script>
-</body>
-</html>
