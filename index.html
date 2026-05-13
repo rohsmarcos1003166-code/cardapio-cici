@@ -19,9 +19,19 @@
         .btn-qtd { background: var(--primary); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 20px; }
         .qtd-num { font-weight: bold; width: 20px; }
 
+        /* Layout do Rodapé */
         .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); z-index: 1000; border-radius: 20px 20px 0 0; }
         
-        .total-container { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 10px; padding: 8px 12px; background: #fff5f5; border-radius: 8px; border: 1px solid #ffcdd2; }
+        .total-container { 
+            display: flex; 
+            justify-content: flex-end; 
+            align-items: center; 
+            margin-bottom: 10px; 
+            padding: 8px 12px; 
+            background: #fff5f5; 
+            border-radius: 8px; 
+            border: 1px solid #ffcdd2; 
+        }
         .total-label { font-size: 14px; font-weight: bold; margin-right: 10px; }
         .total-valor { font-size: 20px; font-weight: bold; color: var(--primary); }
 
@@ -33,6 +43,7 @@
         input:focus { border-color: var(--primary); outline: none; }
         
         .btn-enviar { width: 100%; background: #25d366; color: white; border: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1.1em; cursor: pointer; }
+        .btn-enviar:disabled { background: #ccc; }
     </style>
 </head>
 <body onclick="fecharTeclado(event)">
@@ -43,7 +54,10 @@
     <div class="grid-produtos" id="cardapio"></div>
 
     <div class="footer">
-        <input type="tel" id="whatsapp-cliente" placeholder="Seu WhatsApp: (21) 98888-8888" maxlength="15">
+        <!-- Campo WhatsApp: Só aparece se o número for inválido ou novo -->
+        <input type="tel" id="whatsapp-cliente" placeholder="WhatsApp: (21) 98888-8888" maxlength="15">
+        
+        <!-- Endereço: Sempre visível para evitar entregas no lugar errado -->
         <input type="text" id="endereco" placeholder="Endereço de Entrega (Rua, Nº, Bairro)" onclick="event.stopPropagation()">
 
         <div class="pagamento-opcoes">
@@ -61,6 +75,7 @@
     </div>
 
 <script>
+    // Mantendo a conexão original com sua planilha
     const LINK_SISTEMA = "https://script.google.com/macros/s/AKfycbzITE5_PQ0mumkTKfJFGEAnsjFQQUTxcFJwCxc89nTQzWkGjfQZW_Vvr7Ga-3Tskiyn/exec";
     
     let produtosData = [];
@@ -70,24 +85,30 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const nomeCliente = urlParams.get('nome') || "Cliente";
-    const telURL = urlParams.get('tel');
+    const telBruto = urlParams.get('tel') || "";
 
     const campoWhats = document.getElementById('whatsapp-cliente');
     
-    // Se o telefone já veio na URL, esconde o campo mas guarda o valor
-    if (telURL) {
+    // LÓGICA DE SANIDADE: Ignora números muito longos ou estranhos
+    const apenasNumeros = telBruto.replace(/\D/g, '');
+    if (apenasNumeros.length >= 10 && apenasNumeros.length <= 13) {
+        // Se for um número válido (como 21988887777), esconde o campo
         campoWhats.style.display = 'none';
-        campoWhats.value = telURL;
+        campoWhats.value = telBruto;
+    } else {
+        // Se for número gigante ou inválido, mostra o campo para o cliente corrigir
+        campoWhats.style.display = 'block';
+        campoWhats.value = ""; 
     }
 
-    // Máscara de Telefone
+    // Máscara de Telefone (XX) 9XXXX-XXXX
     campoWhats.addEventListener('input', (e) => {
         let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
         e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
     });
 
     if(nomeCliente !== "Cliente") {
-        document.getElementById('saudacao').innerText = `Olá, ${nomeCliente}! O que vamos pedir hoje?`;
+        document.getElementById('saudacao').innerText = `Olá, ${nomeCliente}! Selecione seus produtos:`;
     }
 
     function fecharTeclado(event) {
@@ -122,7 +143,7 @@
                     </div>`;
             });
         } catch (e) {
-            document.getElementById('loading').innerText = "Erro ao carregar o cardápio.";
+            document.getElementById('loading').innerText = "Erro ao carregar cardápio.";
         }
     }
 
@@ -148,26 +169,24 @@
         const whatsapp = campoWhats.value;
         const itensFiltrados = Object.entries(carrinho).filter(([_, q]) => q > 0);
 
-        // VALIDAÇÃO INTELIGENTE: Só exige máscara se o campo estiver visível (cliente novo)
+        // Validação estrita de padrão apenas se o cliente estiver digitando (campo visível)
         if (campoWhats.style.display !== 'none') {
             const telRegex = /^\(\d{2}\)\s9\d{4}-\d{4}$/;
-            if (!telRegex.test(whatsapp)) return alert("Por favor, preencha o WhatsApp corretamente: (XX) 9XXXX-XXXX");
-        } else if (!whatsapp) {
-            return alert("Número de contato não identificado.");
+            if (!telRegex.test(whatsapp)) return alert("WhatsApp inválido! Use o padrão: (XX) 9XXXX-XXXX");
         }
-        
-        if (itensFiltrados.length === 0) return alert("Escolha pelo menos um item!");
-        if (!formaPagamento) return alert("Escolha a forma de pagamento!");
-        if (!endereco) return alert("Digite o endereço de entrega!");
+
+        if (itensFiltrados.length === 0) return alert("Adicione itens ao carrinho!");
+        if (!formaPagamento) return alert("Selecione o pagamento!");
+        if (!endereco) return alert("Informe o endereço!");
 
         const btn = document.getElementById('btnEnviar');
         btn.disabled = true;
-        btn.innerText = "⏳ Processando...";
+        btn.innerText = "⏳ Enviando...";
 
         const pedidoTexto = itensFiltrados.map(([n, q]) => `*${q}x* ${n}`).join('%0A');
         const totalFormatado = valorTotalGeral.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
 
-        // Grava na Planilha
+        // Grava na Planilha (Sem alterar conexão)
         try {
             await fetch(LINK_SISTEMA, {
                 method: 'POST',
@@ -181,9 +200,9 @@
                     pagamento: formaPagamento
                 })
             });
-        } catch (e) { console.log("Erro ao salvar dados"); }
+        } catch (e) { console.log("Erro Planilha"); }
 
-        // Envio direto para o WhatsApp romeno
+        // Mensagem Final via WhatsApp para o número da Romênia
         const msgWhatsapp = `*Novo Pedido - Petiscos do Paulo*%0A%0A` +
                            `*Cliente:* ${nomeCliente}%0A` +
                            `*WhatsApp:* ${whatsapp}%0A` +
