@@ -6,7 +6,7 @@
     <title>Petiscos do Paulo - Cardápio</title>
     <style>
         :root { --primary: #d32f2f; --secondary: #2e7d32; --bg: #f4f4f4; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 280px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 320px; }
         h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
         
         .grid-produtos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
@@ -19,18 +19,33 @@
         .btn-qtd { background: var(--primary); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 20px; }
         .qtd-num { font-weight: bold; width: 20px; }
 
+        /* Rodapé Ajustado */
         .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); z-index: 1000; border-radius: 20px 20px 0 0; }
-        .total-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 8px 12px; background: #fff5f5; border-radius: 8px; border: 1px solid #ffcdd2; }
-        .total-valor { font-size: 18px; font-weight: bold; color: var(--primary); }
+        
+        .total-container { 
+            display: flex; 
+            justify-content: flex-end; /* Alinha tudo à direita */
+            align-items: center; 
+            margin-bottom: 10px; 
+            padding: 8px 12px; 
+            background: #fff5f5; 
+            border-radius: 8px; 
+            border: 1px solid #ffcdd2; 
+        }
+        .total-label { font-size: 14px; font-weight: bold; margin-right: 10px; }
+        .total-valor { font-size: 20px; font-weight: bold; color: var(--primary); }
 
         .pagamento-opcoes { display: flex; justify-content: space-around; margin-bottom: 10px; }
-        .op-pag { border: 1px solid #ddd; padding: 8px; border-radius: 8px; cursor: pointer; flex: 1; margin: 0 4px; text-align: center; font-size: 11px; font-weight: bold; transition: 0.2s; }
+        .op-pag { border: 1px solid #ddd; padding: 8px; border-radius: 8px; cursor: pointer; flex: 1; margin: 0 4px; text-align: center; font-size: 11px; font-weight: bold; }
         .op-pag.selected { border-color: var(--secondary); background: #e8f5e9; color: var(--secondary); }
 
-        input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 10px; box-sizing: border-box; font-size: 16px; }
+        input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 8px; box-sizing: border-box; font-size: 16px; }
         input:focus { border-color: var(--primary); outline: none; }
+        
         .btn-enviar { width: 100%; background: #25d366; color: white; border: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1.1em; cursor: pointer; }
         .btn-enviar:disabled { background: #ccc; }
+
+        #campo-whatsapp { display: block; } /* Por padrão visível */
     </style>
 </head>
 <body onclick="fecharTeclado(event)">
@@ -43,18 +58,22 @@
     <div class="grid-produtos" id="cardapio"></div>
 
     <div class="footer">
-        <div class="total-container">
-            <span style="font-size: 14px; font-weight: bold;">Total:</span>
-            <span class="total-valor">R$ <span id="valor-total">0,00</span></span>
-        </div>
+        <!-- Campo WhatsApp com Máscara -->
+        <input type="tel" id="whatsapp-cliente" placeholder="Seu WhatsApp: (21) 98888-8888" maxlength="15">
+        
+        <input type="text" id="endereco" placeholder="Endereço de Entrega (Rua, Nº, Bairro)" onclick="event.stopPropagation()">
 
         <div class="pagamento-opcoes">
             <div class="op-pag" onclick="setPagamento('PIX', this)">💠 PIX</div>
             <div class="op-pag" onclick="setPagamento('Cartão', this)">💳 Cartão</div>
             <div class="op-pag" onclick="setPagamento('Dinheiro', this)">💵 Dinheiro</div>
         </div>
+
+        <div class="total-container">
+            <span class="total-label">Total:</span>
+            <span class="total-valor">R$ <span id="valor-total">0,00</span></span>
+        </div>
         
-        <input type="text" id="endereco" placeholder="Endereço de Entrega (Rua, Nº, Bairro)" onclick="event.stopPropagation()">
         <button class="btn-enviar" id="btnEnviar" onclick="finalizarPedido()">✅ Enviar Pedido</button>
     </div>
 
@@ -68,13 +87,29 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const nomeCliente = urlParams.get('nome') || "Cliente";
+    const telExistente = urlParams.get('tel');
+
+    // Lógica para esconder campo de WhatsApp se já existir na URL
+    const campoWhats = document.getElementById('whatsapp-cliente');
+    if (telExistente) {
+        campoWhats.style.display = 'none';
+        campoWhats.value = telExistente;
+    }
+
+    // Máscara de Telefone (XX) 9XXXX-XXXX
+    campoWhats.addEventListener('input', (e) => {
+        let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
+        e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
+    });
+
     if(nomeCliente !== "Cliente") {
         document.getElementById('saudacao').innerText = `Olá, ${nomeCliente}! Escolha suas delícias:`;
     }
 
     function fecharTeclado(event) {
-        if (event.target.id !== 'endereco') {
+        if (event.target.id !== 'endereco' && event.target.id !== 'whatsapp-cliente') {
             document.getElementById('endereco').blur();
+            campoWhats.blur();
         }
     }
 
@@ -103,14 +138,13 @@
                     </div>`;
             });
         } catch (e) {
-            document.getElementById('loading').innerText = "Erro ao carregar o cardápio.";
+            document.getElementById('loading').innerText = "Erro ao carregar cardápio.";
         }
     }
 
     function mudarQtd(nome, preco, delta, index) {
         if (!carrinho[nome]) carrinho[nome] = 0;
         const novaQtd = Math.max(0, carrinho[nome] + delta);
-        
         if (novaQtd !== carrinho[nome]) {
             carrinho[nome] = novaQtd;
             valorTotalGeral += delta * preco;
@@ -127,11 +161,16 @@
 
     async function finalizarPedido() {
         const endereco = document.getElementById('endereco').value;
+        const whatsapp = campoWhats.value;
         const itensFiltrados = Object.entries(carrinho).filter(([_, q]) => q > 0);
 
-        if (itensFiltrados.length === 0) return alert("Adicione pelo menos um item!");
-        if (!formaPagamento) return alert("Selecione a forma de pagamento!");
-        if (!endereco) return alert("Informe o endereço de entrega!");
+        // Validação de Telefone (Padrão correto)
+        const telRegex = /^\(\d{2}\)\s9\d{4}-\d{4}$/;
+        if (!telRegex.test(whatsapp)) return alert("Por favor, insira o WhatsApp no padrão: (XX) 9XXXX-XXXX");
+        
+        if (itensFiltrados.length === 0) return alert("Adicione itens ao carrinho!");
+        if (!formaPagamento) return alert("Escolha o pagamento!");
+        if (!endereco) return alert("Informe o endereço!");
 
         const btn = document.getElementById('btnEnviar');
         btn.disabled = true;
@@ -140,31 +179,29 @@
         const pedidoTexto = itensFiltrados.map(([n, q]) => `*${q}x* ${n}`).join('%0A');
         const totalFormatado = valorTotalGeral.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
 
-        // 1. Salva na Planilha
         try {
             await fetch(LINK_SISTEMA, {
                 method: 'POST',
                 mode: 'no-cors',
                 body: JSON.stringify({
                     nome: nomeCliente,
-                    telefone: urlParams.get('tel') || "Não informado",
+                    telefone: whatsapp,
                     itens: itensFiltrados.map(([n, q]) => `${q}x ${n}`).join(', '),
                     total: valorTotalGeral.toFixed(2),
                     endereco: endereco,
                     pagamento: formaPagamento
                 })
             });
-        } catch (e) { console.log("Erro na planilha"); }
+        } catch (e) { console.log("Erro planilha"); }
 
-        // 2. Abre o WhatsApp direto (Sem Alerta)
-        const msgWhatsapp = `*Novo Pedido - Petiscos do Paulo*%0A%0A` +
+        const msgWhatsapp = `*Novo Pedido*%0A%0A` +
                            `*Cliente:* ${nomeCliente}%0A` +
+                           `*WhatsApp:* ${whatsapp}%0A` +
                            `*Itens:*%0A${pedidoTexto}%0A%0A` +
                            `*Total:* ${totalFormatado}%0A` +
                            `*Pagamento:* ${formaPagamento}%0A` +
                            `*Endereço:* ${endereco}`;
 
-        // Abre o número romeno corrigido (+40)
         window.location.href = `https://api.whatsapp.com/send?phone=40775255771&text=${msgWhatsapp}`;
         
         btn.disabled = false;
