@@ -19,19 +19,9 @@
         .btn-qtd { background: var(--primary); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 20px; }
         .qtd-num { font-weight: bold; width: 20px; }
 
-        /* Rodapé Ajustado */
         .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); z-index: 1000; border-radius: 20px 20px 0 0; }
         
-        .total-container { 
-            display: flex; 
-            justify-content: flex-end; /* Alinha tudo à direita */
-            align-items: center; 
-            margin-bottom: 10px; 
-            padding: 8px 12px; 
-            background: #fff5f5; 
-            border-radius: 8px; 
-            border: 1px solid #ffcdd2; 
-        }
+        .total-container { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 10px; padding: 8px 12px; background: #fff5f5; border-radius: 8px; border: 1px solid #ffcdd2; }
         .total-label { font-size: 14px; font-weight: bold; margin-right: 10px; }
         .total-valor { font-size: 20px; font-weight: bold; color: var(--primary); }
 
@@ -43,24 +33,17 @@
         input:focus { border-color: var(--primary); outline: none; }
         
         .btn-enviar { width: 100%; background: #25d366; color: white; border: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1.1em; cursor: pointer; }
-        .btn-enviar:disabled { background: #ccc; }
-
-        #campo-whatsapp { display: block; } /* Por padrão visível */
     </style>
 </head>
 <body onclick="fecharTeclado(event)">
 
     <h1>Petiscos do Paulo 🍕</h1>
     <div id="saudacao" style="text-align: center; font-weight: bold; color: #555; margin-bottom: 10px;"></div>
-
-    <div id="loading" style="text-align:center; padding:50px; color: #999;">Abrindo cardápio...</div>
-    
+    <div id="loading" style="text-align:center; padding:50px; color: #999;">Carregando cardápio...</div>
     <div class="grid-produtos" id="cardapio"></div>
 
     <div class="footer">
-        <!-- Campo WhatsApp com Máscara -->
         <input type="tel" id="whatsapp-cliente" placeholder="Seu WhatsApp: (21) 98888-8888" maxlength="15">
-        
         <input type="text" id="endereco" placeholder="Endereço de Entrega (Rua, Nº, Bairro)" onclick="event.stopPropagation()">
 
         <div class="pagamento-opcoes">
@@ -87,23 +70,24 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const nomeCliente = urlParams.get('nome') || "Cliente";
-    const telExistente = urlParams.get('tel');
+    const telURL = urlParams.get('tel');
 
-    // Lógica para esconder campo de WhatsApp se já existir na URL
     const campoWhats = document.getElementById('whatsapp-cliente');
-    if (telExistente) {
+    
+    // Se o telefone já veio na URL, esconde o campo mas guarda o valor
+    if (telURL) {
         campoWhats.style.display = 'none';
-        campoWhats.value = telExistente;
+        campoWhats.value = telURL;
     }
 
-    // Máscara de Telefone (XX) 9XXXX-XXXX
+    // Máscara de Telefone
     campoWhats.addEventListener('input', (e) => {
         let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
         e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
     });
 
     if(nomeCliente !== "Cliente") {
-        document.getElementById('saudacao').innerText = `Olá, ${nomeCliente}! Escolha suas delícias:`;
+        document.getElementById('saudacao').innerText = `Olá, ${nomeCliente}! O que vamos pedir hoje?`;
     }
 
     function fecharTeclado(event) {
@@ -138,7 +122,7 @@
                     </div>`;
             });
         } catch (e) {
-            document.getElementById('loading').innerText = "Erro ao carregar cardápio.";
+            document.getElementById('loading').innerText = "Erro ao carregar o cardápio.";
         }
     }
 
@@ -164,21 +148,26 @@
         const whatsapp = campoWhats.value;
         const itensFiltrados = Object.entries(carrinho).filter(([_, q]) => q > 0);
 
-        // Validação de Telefone (Padrão correto)
-        const telRegex = /^\(\d{2}\)\s9\d{4}-\d{4}$/;
-        if (!telRegex.test(whatsapp)) return alert("Por favor, insira o WhatsApp no padrão: (XX) 9XXXX-XXXX");
+        // VALIDAÇÃO INTELIGENTE: Só exige máscara se o campo estiver visível (cliente novo)
+        if (campoWhats.style.display !== 'none') {
+            const telRegex = /^\(\d{2}\)\s9\d{4}-\d{4}$/;
+            if (!telRegex.test(whatsapp)) return alert("Por favor, preencha o WhatsApp corretamente: (XX) 9XXXX-XXXX");
+        } else if (!whatsapp) {
+            return alert("Número de contato não identificado.");
+        }
         
-        if (itensFiltrados.length === 0) return alert("Adicione itens ao carrinho!");
-        if (!formaPagamento) return alert("Escolha o pagamento!");
-        if (!endereco) return alert("Informe o endereço!");
+        if (itensFiltrados.length === 0) return alert("Escolha pelo menos um item!");
+        if (!formaPagamento) return alert("Escolha a forma de pagamento!");
+        if (!endereco) return alert("Digite o endereço de entrega!");
 
         const btn = document.getElementById('btnEnviar');
         btn.disabled = true;
-        btn.innerText = "⏳ Enviando...";
+        btn.innerText = "⏳ Processando...";
 
         const pedidoTexto = itensFiltrados.map(([n, q]) => `*${q}x* ${n}`).join('%0A');
         const totalFormatado = valorTotalGeral.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
 
+        // Grava na Planilha
         try {
             await fetch(LINK_SISTEMA, {
                 method: 'POST',
@@ -192,9 +181,10 @@
                     pagamento: formaPagamento
                 })
             });
-        } catch (e) { console.log("Erro planilha"); }
+        } catch (e) { console.log("Erro ao salvar dados"); }
 
-        const msgWhatsapp = `*Novo Pedido*%0A%0A` +
+        // Envio direto para o WhatsApp romeno
+        const msgWhatsapp = `*Novo Pedido - Petiscos do Paulo*%0A%0A` +
                            `*Cliente:* ${nomeCliente}%0A` +
                            `*WhatsApp:* ${whatsapp}%0A` +
                            `*Itens:*%0A${pedidoTexto}%0A%0A` +
