@@ -3,80 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Petiscos do Paulo - Cardápio</title>
+    <title>Petiscos do Paulo - Cardápio VIP</title>
     <style>
-        :root { --primary: #d32f2f; --secondary: #2e7d32; --bg: #f4f4f4; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; padding-bottom: 320px; }
-        h1 { text-align: center; color: var(--primary); margin-bottom: 5px; }
-        
-        .grid-produtos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-        .card { background: white; border-radius: 12px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 200px; }
-        .card img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; background: #eee; }
-        .nome { font-weight: bold; font-size: 0.85em; margin: 8px 0; display: block; height: 32px; overflow: hidden; }
-        .preco { color: var(--secondary); font-weight: bold; margin-bottom: 8px; display: block; }
-        
-        .controles { display: flex; align-items: center; justify-content: center; gap: 8px; background: #f9f9f9; border-radius: 20px; padding: 5px; }
-        .btn-qtd { background: var(--primary); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 20px; }
-        .qtd-num { font-weight: bold; width: 20px; }
-
-        /* Layout do Rodapé */
-        .footer { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); z-index: 1000; border-radius: 20px 20px 0 0; }
-        
-        .total-container { 
-            display: flex; 
-            justify-content: flex-end; 
-            align-items: center; 
-            margin-bottom: 10px; 
-            padding: 8px 12px; 
-            background: #fff5f5; 
-            border-radius: 8px; 
-            border: 1px solid #ffcdd2; 
+        :root { 
+            --primary: #d32f2f; 
+            --secondary: #2e7d32; 
+            --bg: #f8f9fa; 
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
-        .total-label { font-size: 14px; font-weight: bold; margin-right: 10px; }
-        .total-valor { font-size: 20px; font-weight: bold; color: var(--primary); }
-
-        .pagamento-opcoes { display: flex; justify-content: space-around; margin-bottom: 10px; }
-        .op-pag { border: 1px solid #ddd; padding: 8px; border-radius: 8px; cursor: pointer; flex: 1; margin: 0 4px; text-align: center; font-size: 11px; font-weight: bold; }
-        .op-pag.selected { border-color: var(--secondary); background: #e8f5e9; color: var(--secondary); }
-
-        input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 8px; box-sizing: border-box; font-size: 16px; }
-        input:focus { border-color: var(--primary); outline: none; }
         
-        .btn-enviar { width: 100%; background: #25d366; color: white; border: none; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 1.1em; cursor: pointer; }
-        .btn-enviar:disabled { background: #ccc; }
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            padding: 10px; 
+            padding-bottom: 280px; 
+            color: #333;
+        }
+
+        h1 { text-align: center; color: var(--primary); font-size: 1.5rem; margin: 10px 0 5px; }
+        #saudacao { text-align: center; font-size: 0.9rem; color: #666; margin-bottom: 15px; }
+
+        .grid-produtos { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+        }
+
+        .card { 
+            background: white; 
+            border-radius: 16px; 
+            overflow: hidden; 
+            box-shadow: var(--card-shadow); 
+            display: flex; 
+            flex-direction: column;
+            transition: transform 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        /* Destaque visual quando selecionado */
+        .card.selecionado { border-color: var(--primary); background: #fffdfd; }
+
+        .card img { 
+            width: 100%; 
+            height: 110px; 
+            object-fit: cover; 
+            background: #f0f0f0;
+        }
+
+        .card-body { padding: 10px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        
+        .nome { font-weight: 700; font-size: 0.85rem; line-height: 1.2; margin-bottom: 5px; color: #222; }
+        .preco { color: var(--secondary); font-weight: 800; font-size: 1rem; margin-bottom: 10px; display: block; }
+
+        .controles { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            background: #f1f1f1; 
+            border-radius: 25px; 
+            padding: 3px;
+        }
+
+        .btn-qtd { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            width: 32px; 
+            height: 32px; 
+            border-radius: 50%; 
+            font-size: 18px; 
+            font-weight: bold; 
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qtd-num { font-weight: 800; font-size: 1rem; min-width: 20px; }
+
+        /* Rodapé Otimizado */
+        .footer { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            background: white; 
+            padding: 15px 20px 20px; 
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1); 
+            z-index: 1000; 
+            border-radius: 25px 25px 0 0; 
+        }
+
+        .input-group { position: relative; margin-bottom: 8px; }
+        
+        input { 
+            width: 100%; 
+            padding: 10px 12px; 
+            border: 1.5px solid #eee; 
+            border-radius: 12px; 
+            font-size: 14px; 
+            box-sizing: border-box;
+            background: #fafafa;
+        }
+        input:focus { border-color: var(--primary); outline: none; background: white; }
+
+        .pagamento-opcoes { display: flex; gap: 8px; margin-bottom: 12px; }
+        .op-pag { 
+            flex: 1; 
+            padding: 8px; 
+            border-radius: 10px; 
+            border: 1.5px solid #eee; 
+            text-align: center; 
+            font-size: 0.7rem; 
+            font-weight: 700; 
+            cursor: pointer;
+            background: white;
+            transition: 0.2s;
+        }
+        .op-pag.selected { 
+            border-color: var(--secondary); 
+            background: #e8f5e9; 
+            color: var(--secondary);
+            transform: scale(1.05);
+        }
+
+        .total-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 12px;
+        }
+        .total-label { font-weight: 700; color: #666; }
+        .total-valor { font-size: 1.4rem; font-weight: 800; color: var(--primary); }
+
+        .btn-enviar { 
+            width: 100%; 
+            background: #25d366; 
+            color: white; 
+            border: none; 
+            padding: 15px; 
+            border-radius: 14px; 
+            font-weight: 800; 
+            font-size: 1rem; 
+            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+            cursor: pointer;
+        }
+        .btn-enviar:disabled { background: #ccc; box-shadow: none; }
     </style>
 </head>
 <body onclick="fecharTeclado(event)">
 
     <h1>Petiscos do Paulo 🍕</h1>
-    <div id="saudacao" style="text-align: center; font-weight: bold; color: #555; margin-bottom: 10px;"></div>
-    <div id="loading" style="text-align:center; padding:50px; color: #999;">Carregando cardápio...</div>
+    <div id="saudacao">Carregando informações...</div>
+    
+    <div id="loading" style="text-align:center; padding:50px; color: #999;">Buscando delícias...</div>
     <div class="grid-produtos" id="cardapio"></div>
 
     <div class="footer">
-        <!-- Campo WhatsApp: Só aparece se o número for inválido ou novo -->
-        <input type="tel" id="whatsapp-cliente" placeholder="WhatsApp: (21) 98888-8888" maxlength="15">
+        <div class="input-group">
+            <input type="tel" id="whatsapp-cliente" placeholder="📱 Seu WhatsApp">
+        </div>
         
-        <!-- Endereço: Sempre visível para evitar entregas no lugar errado -->
-        <input type="text" id="endereco" placeholder="Endereço de Entrega (Rua, Nº, Bairro)" onclick="event.stopPropagation()">
+        <div class="input-group">
+            <input type="text" id="endereco" placeholder="📍 Endereço de Entrega" onclick="event.stopPropagation()">
+        </div>
 
         <div class="pagamento-opcoes">
             <div class="op-pag" onclick="setPagamento('PIX', this)">💠 PIX</div>
-            <div class="op-pag" onclick="setPagamento('Cartão', this)">💳 Cartão</div>
-            <div class="op-pag" onclick="setPagamento('Dinheiro', this)">💵 Dinheiro</div>
+            <div class="op-pag" onclick="setPagamento('Cartão', this)">💳 CARTÃO</div>
+            <div class="op-pag" onclick="setPagamento('Dinheiro', this)">💵 DINHEIRO</div>
         </div>
 
-        <div class="total-container">
-            <span class="total-label">Total:</span>
+        <div class="total-row">
+            <span class="total-label">Total do Pedido:</span>
             <span class="total-valor">R$ <span id="valor-total">0,00</span></span>
         </div>
         
-        <button class="btn-enviar" id="btnEnviar" onclick="finalizarPedido()">✅ Enviar Pedido</button>
+        <button class="btn-enviar" id="btnEnviar" onclick="finalizarPedido()">✅ FINALIZAR PEDIDO</button>
     </div>
 
 <script>
-    // Mantendo a conexão original com sua planilha
+    // CONEXÕES ORIGINAIS PRESERVADAS
     const LINK_SISTEMA = "https://script.google.com/macros/s/AKfycbzITE5_PQ0mumkTKfJFGEAnsjFQQUTxcFJwCxc89nTQzWkGjfQZW_Vvr7Ga-3Tskiyn/exec";
+    const FONE_ROMENIA = "40775255771";
     
     let produtosData = [];
     let carrinho = {};
@@ -88,33 +198,29 @@
     const telBruto = urlParams.get('tel') || "";
 
     const campoWhats = document.getElementById('whatsapp-cliente');
-    
-    // LÓGICA DE SANIDADE: Ignora números muito longos ou estranhos
+    const displaySaudacao = document.getElementById('saudacao');
+
+    // Lógica de Identificação e Sanidade (Ignora o número gigante)
     const apenasNumeros = telBruto.replace(/\D/g, '');
     if (apenasNumeros.length >= 10 && apenasNumeros.length <= 13) {
-        // Se for um número válido (como 21988887777), esconde o campo
         campoWhats.style.display = 'none';
         campoWhats.value = telBruto;
+        displaySaudacao.innerHTML = `Bem-vindo, <b>${nomeCliente}</b>!`;
     } else {
-        // Se for número gigante ou inválido, mostra o campo para o cliente corrigir
         campoWhats.style.display = 'block';
         campoWhats.value = ""; 
+        displaySaudacao.innerHTML = `Olá! Escolha seus petiscos favoritos:`;
     }
 
-    // Máscara de Telefone (XX) 9XXXX-XXXX
+    // Máscara de Telefone
     campoWhats.addEventListener('input', (e) => {
         let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
         e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
     });
 
-    if(nomeCliente !== "Cliente") {
-        document.getElementById('saudacao').innerText = `Olá, ${nomeCliente}! Selecione seus produtos:`;
-    }
-
     function fecharTeclado(event) {
-        if (event.target.id !== 'endereco' && event.target.id !== 'whatsapp-cliente') {
-            document.getElementById('endereco').blur();
-            campoWhats.blur();
+        if (!['endereco', 'whatsapp-cliente'].includes(event.target.id)) {
+            document.activeElement.blur();
         }
     }
 
@@ -126,36 +232,43 @@
             document.getElementById('loading').style.display = 'none';
             
             produtosData.forEach((p, index) => {
-                let precoNumerico = typeof p.preco === 'string' 
+                let preco = typeof p.preco === 'string' 
                     ? parseFloat(p.preco.replace('R$', '').replace('.', '').replace(',', '.').trim())
                     : p.preco;
 
                 lista.innerHTML += `
-                    <div class="card">
+                    <div class="card" id="card-${index}">
                         <img src="${p.imagem}" onerror="this.src='https://via.placeholder.com/150?text=Petisco'">
-                        <span class="nome">${p.nome}</span>
-                        <span class="preco">R$ ${precoNumerico.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-                        <div class="controles">
-                            <button class="btn-qtd" onclick="mudarQtd('${p.nome}', ${precoNumerico}, -1, ${index})">−</button>
-                            <span class="qtd-num" id="qtd-${index}">0</span>
-                            <button class="btn-qtd" onclick="mudarQtd('${p.nome}', ${precoNumerico}, 1, ${index})">+</button>
+                        <div class="card-body">
+                            <span class="nome">${p.nome}</span>
+                            <span class="preco">R$ ${preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                            <div class="controles">
+                                <button class="btn-qtd" onclick="mudarQtd('${p.nome}', ${preco}, -1, ${index})">−</button>
+                                <span class="qtd-num" id="qtd-${index}">0</span>
+                                <button class="btn-qtd" onclick="mudarQtd('${p.nome}', ${preco}, 1, ${index})">+</button>
+                            </div>
                         </div>
                     </div>`;
             });
         } catch (e) {
-            document.getElementById('loading').innerText = "Erro ao carregar cardápio.";
+            document.getElementById('loading').innerText = "Erro ao carregar. Verifique a conexão.";
         }
     }
 
     function mudarQtd(nome, preco, delta, index) {
         if (!carrinho[nome]) carrinho[nome] = 0;
         const novaQtd = Math.max(0, carrinho[nome] + delta);
-        if (novaQtd !== carrinho[nome]) {
-            carrinho[nome] = novaQtd;
-            valorTotalGeral += delta * preco;
-            document.getElementById(`qtd-${index}`).innerText = novaQtd;
-            document.getElementById('valor-total').innerText = Math.max(0, valorTotalGeral).toLocaleString('pt-BR', {minimumFractionDigits: 2});
-        }
+        
+        carrinho[nome] = novaQtd;
+        valorTotalGeral = Math.max(0, valorTotalGeral + (delta * preco));
+        
+        document.getElementById(`qtd-${index}`).innerText = novaQtd;
+        document.getElementById('valor-total').innerText = valorTotalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+        
+        // Feedback visual no card
+        const card = document.getElementById(`card-${index}`);
+        if(novaQtd > 0) card.classList.add('selecionado');
+        else card.classList.remove('selecionado');
     }
 
     function setPagamento(tipo, el) {
@@ -169,52 +282,48 @@
         const whatsapp = campoWhats.value;
         const itensFiltrados = Object.entries(carrinho).filter(([_, q]) => q > 0);
 
-        // Validação estrita de padrão apenas se o cliente estiver digitando (campo visível)
-        if (campoWhats.style.display !== 'none') {
-            const telRegex = /^\(\d{2}\)\s9\d{4}-\d{4}$/;
-            if (!telRegex.test(whatsapp)) return alert("WhatsApp inválido! Use o padrão: (XX) 9XXXX-XXXX");
-        }
-
-        if (itensFiltrados.length === 0) return alert("Adicione itens ao carrinho!");
-        if (!formaPagamento) return alert("Selecione o pagamento!");
-        if (!endereco) return alert("Informe o endereço!");
+        if (campoWhats.style.display !== 'none' && !/^\(\d{2}\)\s9\d{4}-\d{4}$/.test(whatsapp)) 
+            return alert("Por favor, informe um WhatsApp válido.");
+        if (itensFiltrados.length === 0) return alert("Seu carrinho está vazio!");
+        if (!formaPagamento) return alert("Escolha uma forma de pagamento.");
+        if (!endereco) return alert("Informe o endereço de entrega.");
 
         const btn = document.getElementById('btnEnviar');
         btn.disabled = true;
-        btn.innerText = "⏳ Enviando...";
+        btn.innerText = "🚀 ENVIANDO...";
 
-        const pedidoTexto = itensFiltrados.map(([n, q]) => `*${q}x* ${n}`).join('%0A');
-        const totalFormatado = valorTotalGeral.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+        // Dados para a Planilha
+        const payload = {
+            nome: nomeCliente,
+            telefone: whatsapp,
+            itens: itensFiltrados.map(([n, q]) => `${q}x ${n}`).join(', '),
+            total: valorTotalGeral.toFixed(2),
+            endereco: endereco,
+            pagamento: formaPagamento
+        };
 
-        // Grava na Planilha (Sem alterar conexão)
         try {
             await fetch(LINK_SISTEMA, {
                 method: 'POST',
                 mode: 'no-cors',
-                body: JSON.stringify({
-                    nome: nomeCliente,
-                    telefone: whatsapp,
-                    itens: itensFiltrados.map(([n, q]) => `${q}x ${n}`).join(', '),
-                    total: valorTotalGeral.toFixed(2),
-                    endereco: endereco,
-                    pagamento: formaPagamento
-                })
+                body: JSON.stringify(payload)
             });
-        } catch (e) { console.log("Erro Planilha"); }
+        } catch (e) { console.log("Erro ao salvar na planilha."); }
 
-        // Mensagem Final via WhatsApp para o número da Romênia
-        const msgWhatsapp = `*Novo Pedido - Petiscos do Paulo*%0A%0A` +
-                           `*Cliente:* ${nomeCliente}%0A` +
-                           `*WhatsApp:* ${whatsapp}%0A` +
-                           `*Itens:*%0A${pedidoTexto}%0A%0A` +
-                           `*Total:* ${totalFormatado}%0A` +
-                           `*Pagamento:* ${formaPagamento}%0A` +
-                           `*Endereço:* ${endereco}`;
+        // Montagem da mensagem para o WhatsApp (wa.me é mais rápido)
+        const pedidoTexto = itensFiltrados.map(([n, q]) => `*${q}x* ${n}`).join('%0A');
+        const totalFmt = valorTotalGeral.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
 
-        window.location.href = `https://api.whatsapp.com/send?phone=40775255771&text=${msgWhatsapp}`;
-        
-        btn.disabled = false;
-        btn.innerText = "✅ Enviar Pedido";
+        const msg = `*Novo Pedido - Petiscos do Paulo*%0A%0A` +
+                   `*Cliente:* ${nomeCliente}%0A` +
+                   `*WhatsApp:* ${whatsapp}%0A` +
+                   `*Endereço:* ${endereco}%0A%0A` +
+                   `*Itens:*%0A${pedidoTexto}%0A%0A` +
+                   `*Total:* ${totalFmt}%0A` +
+                   `*Pagamento:* ${formaPagamento}`;
+
+        // Redirecionamento instantâneo para o WhatsApp da Romênia
+        window.location.href = `https://wa.me/${FONE_ROMENIA}?text=${msg}`;
     }
 
     carregar();
