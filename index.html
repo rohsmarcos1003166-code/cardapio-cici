@@ -82,7 +82,7 @@
 
         .qtd-num { font-weight: 800; font-size: 1rem; min-width: 20px; }
 
-        /* --- ESTILOS DO MODAL COMPACTO (JANELA DE DETALHES) --- */
+        /* --- ESTILOS DO MODAL COM IMAGEM EM TOTAL DESTAQUE --- */
         .modal-detalhes {
             display: none;
             position: fixed;
@@ -107,6 +107,8 @@
             from { transform: scale(0.9); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
+        
+        /* Botão de flecha reposicionado sobre a própria foto */
         .modal-fechar {
             position: absolute;
             top: 15px; right: 15px;
@@ -122,12 +124,15 @@
             transition: 0.2s;
         }
         .modal-fechar:active { transform: scale(0.9); }
-        .modal-img { width: 100%; height: 180px; object-fit: cover; } 
         
-        .modal-body { padding: 12px 15px; text-align: center; } 
-        .modal-nome { font-size: 1.1rem; font-weight: 800; color: #222; margin-bottom: 4px; display: block; }
-        .modal-referencia { font-size: 0.78rem; color: #666; margin-bottom: 10px; display: block; line-height: 1.3; }
-        .modal-preco { color: var(--secondary); font-size: 1.15rem; font-weight: 800; margin-bottom: 12px; display: block; }
+        /* Imagem ganha altura maior, no topo de tudo */
+        .modal-img { width: 100%; height: 240px; object-fit: cover; display: block; } 
+        
+        /* Legendas e controles logo abaixo, de forma compactada */
+        .modal-body { padding: 15px; text-align: center; } 
+        .modal-nome { font-size: 1.15rem; font-weight: 800; color: #222; margin-bottom: 4px; display: block; }
+        .modal-referencia { font-size: 0.78rem; color: #666; margin-bottom: 12px; display: block; line-height: 1.3; }
+        .modal-preco { color: var(--secondary); font-size: 1.2rem; font-weight: 800; margin-bottom: 15px; display: block; }
         .modal-controles-box { max-width: 150px; margin: 0 auto; }
 
         /* Rodapé Otimizado */
