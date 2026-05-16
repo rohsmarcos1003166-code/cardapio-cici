@@ -41,7 +41,6 @@
             border: 1px solid transparent;
         }
         
-        /* Destaque visual quando selecionado */
         .card.selecionado { border-color: var(--primary); background: #fffdfd; }
 
         .card img { 
@@ -49,6 +48,7 @@
             height: 110px; 
             object-fit: cover; 
             background: #f0f0f0;
+            cursor: pointer; /* Indica que a foto é clicável */
         }
 
         .card-body { padding: 10px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
@@ -81,6 +81,51 @@
         }
 
         .qtd-num { font-weight: 800; font-size: 1rem; min-width: 20px; }
+
+        /* --- ESTILOS DO MODAL (IMAGEM AMPLIADA) --- */
+        .modal-detalhes {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-conteudo {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            animation: abrirModal 0.3s ease-out;
+        }
+        @keyframes abrirModal {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-fechar {
+            position: absolute;
+            top: 15px; right: 15px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            width: 35px; height: 35px;
+            border-radius: 50%;
+            font-size: 18px; font-weight: bold;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2001;
+        }
+        .modal-img { width: 100%; height: 220px; object-fit: cover; }
+        .modal-body { padding: 20px; text-align: center; }
+        .modal-nome { font-size: 1.3rem; font-weight: 800; color: #222; margin-bottom: 8px; display: block; }
+        .modal-referencia { font-size: 0.9rem; color: #666; margin-bottom: 15px; display: block; line-height: 1.4; }
+        .modal-preco { color: var(--secondary); font-size: 1.4rem; font-weight: 800; margin-bottom: 20px; display: block; }
+        .modal-controles-box { max-width: 180px; margin: 0 auto; }
 
         /* Rodapé Otimizado */
         .footer { 
@@ -160,6 +205,19 @@
     <div id="loading" style="text-align:center; padding:50px; color: #999;">Buscando delícias...</div>
     <div class="grid-produtos" id="cardapio"></div>
 
+    <div class="modal-detalhes" id="modalProduto" onclick="fecharModalExterno(event)">
+        <div class="modal-conteudo">
+            <button class="modal-fechar" onclick="fecharModal()">✕</button>
+            <img src="" class="modal-img" id="modalImg">
+            <div class="modal-body">
+                <span class="modal-nome" id="modalNome"></span>
+                <span class="modal-referencia">Feito na hora com ingredientes selecionados. Uma delícia de acompanhamento!</span>
+                <span class="modal-preco" id="modalPreco"></span>
+                <div class="modal-controles-box" id="modalControles"></div>
+            </div>
+        </div>
+    </div>
+
     <div class="footer">
         <div class="input-group">
             <input type="tel" id="whatsapp-cliente" placeholder="📱 Seu WhatsApp">
@@ -200,19 +258,17 @@
     const campoWhats = document.getElementById('whatsapp-cliente');
     const displaySaudacao = document.getElementById('saudacao');
 
-    // Lógica de Identificação e Sanidade (Ignora o número gigante)
     const apenasNumeros = telBruto.replace(/\D/g, '');
     if (apenasNumeros.length >= 10 && apenasNumeros.length <= 13) {
         campoWhats.style.display = 'none';
         campoWhats.value = telBruto;
-        displaySaudacao.innerHTML = `Bem-vindo, <b>${nomeCliente}</b>!`;
+        displaySaudacao.innerHTML = `Welcome, <b>${nomeCliente}</b>!`;
     } else {
         campoWhats.style.display = 'block';
         campoWhats.value = ""; 
         displaySaudacao.innerHTML = `Olá! Escolha seus petiscos favoritos:`;
     }
 
-    // Máscara de Telefone
     campoWhats.addEventListener('input', (e) => {
         let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
         e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
@@ -238,11 +294,11 @@
 
                 lista.innerHTML += `
                     <div class="card" id="card-${index}">
-                        <img src="${p.imagem}" onerror="this.src='https://via.placeholder.com/150?text=Petisco'">
+                        <img src="${p.imagem}" onclick="abrirModal('${p.nome}', ${preco}, '${p.imagem}', ${index})" onerror="this.src='https://via.placeholder.com/150?text=Petisco'">
                         <div class="card-body">
                             <span class="nome">${p.nome}</span>
                             <span class="preco">R$ ${preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-                            <div class="controles">
+                            <div class="controles" id="box-controle-${index}">
                                 <button class="btn-qtd" onclick="mudarQtd('${p.nome}', ${preco}, -1, ${index})">−</button>
                                 <span class="qtd-num" id="qtd-${index}">0</span>
                                 <button class="btn-qtd" onclick="mudarQtd('${p.nome}', ${preco}, 1, ${index})">+</button>
@@ -262,13 +318,48 @@
         carrinho[nome] = novaQtd;
         valorTotalGeral = Math.max(0, valorTotalGeral + (delta * preco));
         
+        // Atualiza a tela de trás (card)
         document.getElementById(`qtd-${index}`).innerText = novaQtd;
+        
+        // Se o modal estiver aberto, atualiza a quantidade dentro dele também
+        const qtdModal = document.getElementById(`qtd-modal-${index}`);
+        if(qtdModal) qtdModal.innerText = novaQtd;
+
         document.getElementById('valor-total').innerText = valorTotalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2});
         
-        // Feedback visual no card
         const card = document.getElementById(`card-${index}`);
         if(novaQtd > 0) card.classList.add('selecionado');
         else card.classList.remove('selecionado');
+    }
+
+    // FUNÇÕES DO MODAL (VISUALIZAÇÃO AMPLIADA)
+    function abrirModal(nome, preco, imagem, index) {
+        const modal = document.getElementById('modalProduto');
+        document.getElementById('modalImg').src = imagem;
+        document.getElementById('modalNome').innerText = nome;
+        document.getElementById('modalPreco').innerText = `R$ ${preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        
+        const qtdAtual = carrinho[nome] || 0;
+        
+        // Clona e projeta os botões de controle para dentro do modal
+        document.getElementById('modalControles').innerHTML = `
+            <div class="controles">
+                <button class="btn-qtd" onclick="mudarQtd('${nome}', ${preco}, -1, ${index})">−</button>
+                <span class="qtd-num" id="qtd-modal-${index}">${qtdAtual}</span>
+                <button class="btn-qtd" onclick="mudarQtd('${nome}', ${preco}, 1, ${index})">+</button>
+            </div>`;
+            
+        modal.style.display = 'flex';
+    }
+
+    function fecharModal() {
+        document.getElementById('modalProduto').style.display = 'none';
+    }
+
+    function fecharModalExterno(event) {
+        if(event.target.id === 'modalProduto') {
+            fecharModal();
+        }
     }
 
     function setPagamento(tipo, el) {
@@ -292,7 +383,6 @@
         btn.disabled = true;
         btn.innerText = "🚀 ENVIANDO...";
 
-        // Dados para a Planilha
         const payload = {
             nome: nomeCliente,
             telefone: whatsapp,
@@ -310,7 +400,6 @@
             });
         } catch (e) { console.log("Erro ao salvar na planilha."); }
 
-        // Montagem da mensagem para o WhatsApp (wa.me é mais rápido)
         const pedidoTexto = itensFiltrados.map(([n, q]) => `*${q}x* ${n}`).join('%0A');
         const totalFmt = valorTotalGeral.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
 
@@ -322,7 +411,6 @@
                    `*Total:* ${totalFmt}%0A` +
                    `*Pagamento:* ${formaPagamento}`;
 
-        // Redirecionamento instantâneo para o WhatsApp da Romênia
         window.location.href = `https://wa.me/${FONE_ROMENIA}?text=${msg}`;
     }
 
