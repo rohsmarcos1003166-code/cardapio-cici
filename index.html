@@ -82,58 +82,69 @@
 
         .qtd-num { font-weight: 800; font-size: 1rem; min-width: 20px; }
 
-        /* --- ESTILOS DO MODAL COM IMAGEM EM TOTAL DESTAQUE --- */
-        .modal-detalhes {
+        /* --- NOVO LAYOUT: TELA CHEIA DO PRODUTO (FULL SCREEN) --- */
+        .tela-produto {
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal-conteudo {
             background: white;
-            border-radius: 20px;
-            width: 100%;
-            max-width: 360px; 
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            animation: abrirModal 0.3s ease-out;
+            z-index: 2000;
+            flex-direction: column;
+            overflow-y: auto;
+            animation: deslizarTela 0.25s ease-out;
         }
-        @keyframes abrirModal {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+        @keyframes deslizarTela {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         
-        /* Botão de flecha reposicionado sobre a própria foto */
-        .modal-fechar {
+        /* Imagem Gigante no Topo da Tela */
+        .tela-img-container {
+            position: relative;
+            width: 100%;
+            height: 50vh; /* Ocupa metade da altura de qualquer tela */
+            background: #f0f0f0;
+        }
+        .tela-img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Seta de Retorno Estilizada sobre a Imagem */
+        .tela-retorno {
             position: absolute;
-            top: 15px; right: 15px;
+            top: 20px; right: 20px;
             background: rgba(0,0,0,0.6);
             color: white;
             border: none;
-            width: 35px; height: 35px;
+            width: 40px; height: 40px;
             border-radius: 50%;
-            font-size: 20px; font-weight: bold;
+            font-size: 24px; font-weight: bold;
             cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            z-index: 2001;
-            transition: 0.2s;
+            z-index: 2002;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
-        .modal-fechar:active { transform: scale(0.9); }
+        .tela-retorno:active { transform: scale(0.9); }
         
-        /* Imagem ganha altura maior, no topo de tudo */
-        .modal-img { width: 100%; height: 240px; object-fit: cover; display: block; } 
+        /* Conteúdo Técnico e Informativo da Tela Cheia */
+        .tela-body { padding: 20px; display: flex; flex-direction: column; gap: 15px; } 
+        .tela-nome { font-size: 1.4rem; font-weight: 800; color: #222; text-align: center; }
+        .tela-referencia { font-size: 0.85rem; color: #666; text-align: center; line-height: 1.4; margin-top: -8px; }
+        .tela-preco { color: var(--secondary); font-size: 1.5rem; font-weight: 800; text-align: center; }
         
-        /* Legendas e controles logo abaixo, de forma compactada */
-        .modal-body { padding: 15px; text-align: center; } 
-        .modal-nome { font-size: 1.15rem; font-weight: 800; color: #222; margin-bottom: 4px; display: block; }
-        .modal-referencia { font-size: 0.78rem; color: #666; margin-bottom: 12px; display: block; line-height: 1.3; }
-        .modal-preco { color: var(--secondary); font-size: 1.2rem; font-weight: 800; margin-bottom: 15px; display: block; }
-        .modal-controles-box { max-width: 150px; margin: 0 auto; }
+        /* Campo Interativo de Observações */
+        .tela-obs-box { display: flex; flex-direction: column; gap: 5px; margin: 5px 0; }
+        .tela-obs-label { font-size: 0.85rem; font-weight: 700; color: #444; }
+        .tela-obs-input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1.5px solid #ddd; 
+            border-radius: 12px; 
+            font-size: 14px; 
+            box-sizing: border-box;
+            background: #fafafa;
+        }
+        .tela-obs-input:focus { border-color: var(--primary); outline: none; background: white; }
+        
+        .tela-controles-box { max-width: 180px; margin: 10px auto 0; width: 100%; }
 
         /* Rodapé Otimizado */
         .footer { 
@@ -206,26 +217,34 @@
 </head>
 <body onclick="fecharTeclado(event)">
 
-    <h1>Petiscos da Cici 🍕</h1>
-    <div id="saudacao">Carregando informações...</div>
-    
-    <div id="loading" style="text-align:center; padding:50px; color: #999;">Buscando delícias...</div>
-    <div class="grid-produtos" id="cardapio"></div>
+    <div id="container-principal">
+        <h1>Petiscos da Cici 🍕</h1>
+        <div id="saudacao">Carregando informações...</div>
+        
+        <div id="loading" style="text-align:center; padding:50px; color: #999;">Buscando delícias...</div>
+        <div class="grid-produtos" id="cardapio"></div>
+    </div>
 
-    <div class="modal-detalhes" id="modalProduto" onclick="fecharModalExterno(event)">
-        <div class="modal-conteudo">
-            <button class="modal-fechar" onclick="fecharModal()">➔</button>
-            <img src="" class="modal-img" id="modalImg">
-            <div class="modal-body">
-                <span class="modal-nome" id="modalNome"></span>
-                <span class="modal-referencia">Preparado na hora com ingredientes frescos!</span>
-                <span class="modal-preco" id="modalPreco"></span>
-                <div class="modal-controles-box" id="modalControles"></div>
+    <div class="tela-produto" id="telaProduto">
+        <div class="tela-img-container">
+            <button class="tela-retorno" onclick="fecharTelaCheia()">➔</button>
+            <img src="" class="tela-img" id="telaImg">
+        </div>
+        <div class="tela-body">
+            <span class="tela-nome" id="telaNome"></span>
+            <span class="tela-referencia">Preparado na hora com ingredientes frescos!</span>
+            <span class="tela-preco" id="telaPreco"></span>
+            
+            <div class="tela-obs-box">
+                <label class="tela-obs-label" id="labelObs">Observações do Produto:</label>
+                <input type="text" class="tela-obs-input" id="telaObsInput" placeholder="Ex: Só com tomate, sem cebola...">
             </div>
+            
+            <div class="tela-controles-box" id="telaControles"></div>
         </div>
     </div>
 
-    <div class="footer">
+    <div class="footer" id="footer-pedido">
         <div class="input-group">
             <input type="tel" id="whatsapp-cliente" placeholder="📱 Seu WhatsApp">
         </div>
@@ -254,9 +273,11 @@
     const FONE_ROMENIA = "40775255771";
     
     let produtosData = [];
-    let carrinho = {};
+    let carrinho = {};      // Guarda as quantidades: { "Nome do Produto": 2 }
+    let observacoes = {};   // Guarda as observações: { "Nome do Produto": "Sem cebola" }
     let valorTotalGeral = 0;
     let formaPagamento = "";
+    let produtoAtivoEmTelaCheia = ""; // Controla qual produto está aberto
 
     const urlParams = new URLSearchParams(window.location.search);
     const nomeCliente = urlParams.get('nome') || "Cliente";
@@ -282,7 +303,7 @@
     });
 
     function fecharTeclado(event) {
-        if (!['endereco', 'whatsapp-cliente'].includes(event.target.id)) {
+        if (!['endereco', 'whatsapp-cliente', 'telaObsInput'].includes(event.target.id)) {
             document.activeElement.blur();
         }
     }
@@ -301,14 +322,14 @@
 
                 lista.innerHTML += `
                     <div class="card" id="card-${index}">
-                        <img src="${p.imagem}" onclick="abrirModal('${p.nome}', ${preco}, '${p.imagem}', ${index})" onerror="this.src='https://via.placeholder.com/150?text=Petisco'">
+                        <img src="${p.imagem}" onclick="abrirTelaCheia('${p.nome}', ${preco}, '${p.imagem}', ${index})" onerror="this.src='https://via.placeholder.com/150?text=Petisco'">
                         <div class="card-body">
                             <span class="nome">${p.nome}</span>
                             <span class="preco">R$ ${preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
                             <div class="controles" id="box-controle-${index}">
-                                <button class="btn-qtd" onclick="mudarQtd('${p.nome}', ${preco}, -1, ${index})">−</button>
+                                <button class="btn-qtd" onclick="mudarQtd('${p.nome}', ${preco}, -1, ${index}); event.stopPropagation();">−</button>
                                 <span class="qtd-num" id="qtd-${index}">0</span>
-                                <button class="btn-qtd" onclick="mudarQtd('${p.nome}', ${preco}, 1, ${index})">+</button>
+                                <button class="btn-qtd" onclick="mudarQtd('${p.nome}', ${preco}, 1, ${index}); event.stopPropagation();">+</button>
                             </div>
                         </div>
                     </div>`;
@@ -325,10 +346,12 @@
         carrinho[nome] = novaQtd;
         valorTotalGeral = Math.max(0, valorTotalGeral + (delta * preco));
         
+        // Atualiza a listagem do cardápio principal de trás
         document.getElementById(`qtd-${index}`).innerText = novaQtd;
         
-        const qtdModal = document.getElementById(`qtd-modal-${index}`);
-        if(qtdModal) qtdModal.innerText = novaQtd;
+        // Se a tela cheia deste produto estiver aberta, atualiza a quantidade interna também
+        const qtdTelaCheia = document.getElementById(`qtd-tela-${index}`);
+        if(qtdTelaCheia) qtdTelaCheia.innerText = novaQtd;
 
         document.getElementById('valor-total').innerText = valorTotalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2});
         
@@ -337,32 +360,54 @@
         else card.classList.remove('selecionado');
     }
 
-    function abrirModal(nome, preco, imagem, index) {
-        const modal = document.getElementById('modalProduto');
-        document.getElementById('modalImg').src = imagem;
-        document.getElementById('modalNome').innerText = nome;
-        document.getElementById('modalPreco').innerText = `R$ ${preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+    // INTERATIVIDADE: COMPORTAMENTO EM TELA CHEIA (FULL SCREEN)
+    function abrirTelaCheia(nome, preco, imagem, index) {
+        produtoAtivoEmTelaCheia = nome;
+        
+        // Oculta a listagem principal e o rodapé de finalização
+        document.getElementById('container-principal').style.display = 'none';
+        document.getElementById('footer-pedido').style.display = 'none';
+        
+        const tela = document.getElementById('telaProduto');
+        document.getElementById('telaImg').src = imagem;
+        document.getElementById('telaNome').innerText = nome;
+        document.getElementById('telaPreco').innerText = `R$ ${preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        
+        // Resgata observação anterior se houver
+        document.getElementById('telaObsInput').value = observacoes[nome] || "";
         
         const qtdAtual = carrinho[nome] || 0;
         
-        document.getElementById('modalControles').innerHTML = `
+        // Monta os controles de quantidade para a nova interface
+        document.getElementById('telaControles').innerHTML = `
             <div class="controles">
                 <button class="btn-qtd" onclick="mudarQtd('${nome}', ${preco}, -1, ${index})">−</button>
-                <span class="qtd-num" id="qtd-modal-${index}">${qtdAtual}</span>
+                <span class="qtd-num" id="qtd-tela-${index}">${qtdAtual}</span>
                 <button class="btn-qtd" onclick="mudarQtd('${nome}', ${preco}, 1, ${index})">+</button>
             </div>`;
             
-        modal.style.display = 'flex';
+        tela.style.display = 'flex';
+        window.scrollTo(0, 0);
     }
 
-    function fecharModal() {
-        document.getElementById('modalProduto').style.display = 'none';
-    }
-
-    function fecharModalExterno(event) {
-        if(event.target.id === 'modalProduto') {
-            fecharModal();
+    function fecharTelaCheia() {
+        if (produtoAtivoEmTelaCheia) {
+            // Salva o texto inserido no campo de observações antes de fechar
+            const textoObs = document.getElementById('telaObsInput').value.trim();
+            if (textoObs !== "") {
+                observacoes[produtoAtivoEmTelaCheia] = textoObs;
+            } else {
+                delete observacoes[produtoAtivoEmTelaCheia];
+            }
         }
+        
+        document.getElementById('telaProduto').style.display = 'none';
+        
+        // Reexibe o cardápio principal e o rodapé
+        document.getElementById('container-principal').style.display = 'block';
+        document.getElementById('footer-pedido').style.display = 'block';
+        
+        produtoAtivoEmTelaCheia = "";
     }
 
     function setPagamento(tipo, el) {
@@ -386,10 +431,16 @@
         btn.disabled = true;
         btn.innerText = "🚀 ENVIANDO...";
 
+        // Formatação dos itens para a Planilha incluindo as observações de forma técnica
+        const stringItensPlanilha = itensFiltrados.map(([nome, q]) => {
+            const obs = observacoes[nome] ? ` (Obs: ${observacoes[nome]})` : '';
+            return `${q}x ${nome}${obs}`;
+        }).join(', ');
+
         const payload = {
             nome: nomeCliente,
             telefone: whatsapp,
-            itens: itensFiltrados.map(([n, q]) => `${q}x ${n}`).join(', '),
+            itens: stringItensPlanilha,
             total: valorTotalGeral.toFixed(2),
             endereco: endereco,
             pagamento: formaPagamento
@@ -403,14 +454,19 @@
             });
         } catch (e) { console.log("Erro ao salvar na planilha."); }
 
-        const pedidoTexto = itensFiltrados.map(([n, q]) => `*${q}x* ${n}`).join('%0A');
+        // Formatação limpa do texto para o WhatsApp com quebras de linha corretas
+        const pedidoTextoZap = itensFiltrados.map(([nome, q]) => {
+            const obs = observacoes[nome] ? `%0A   └ _Obs: ${observacoes[nome]}_` : '';
+            return `*${q}x* ${nome}${obs}`;
+        }).join('%0A');
+        
         const totalFmt = valorTotalGeral.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
 
         const msg = `*Novo Pedido - Petiscos da Cici*%0A%0A` +
                    `*Cliente:* ${nomeCliente}%0A` +
                    `*WhatsApp:* ${whatsapp}%0A` +
                    `*Endereço:* ${endereco}%0A%0A` +
-                   `*Itens:*%0A${pedidoTexto}%0A%0A` +
+                   `*Itens:*%0A${pedidoTextoZap}%0A%0A` +
                    `*Total:* ${totalFmt}%0A` +
                    `*Pagamento:* ${formaPagamento}`;
 
